@@ -2,113 +2,189 @@ package view;
 
 import controller.MainController;
 import javafx.geometry.Insets;
-import javafx.scene.Scene;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import model.*;
 
 public class MainView {
 
-    private VBox root;
-    private ComboBox<Planet> fromPlanetBox = new ComboBox<>();
-    private ComboBox<Planet> toPlanetBox = new ComboBox<>();
-    private ComboBox<CargoType> cargoTypeBox = new ComboBox<>();
-    private TextField cargoWeightField = new TextField();
-
-    private ComboBox<String> genderBox = new ComboBox<>();
-    private CheckBox luggageCheck = new CheckBox("Bringing luggage?");
-    private TextField luggageWeightField = new TextField();
-    private ComboBox<String> baseToBox = new ComboBox<>();
-
-    private ToggleGroup actionGroup = new ToggleGroup();
-    private RadioButton cargoOption = new RadioButton("Send Cargo");
-    private RadioButton travelOption = new RadioButton("Travel");
-
-    private Label resultLabel = new Label();
+    private BorderPane root;
     private MainController controller = new MainController();
 
     public MainView() {
-        root = new VBox(10);
+        root = new BorderPane();
         root.setPadding(new Insets(20));
+        root.setStyle("-fx-background-color: #f0f4f8;");
 
-        fromPlanetBox.getItems().addAll(Planet.values());
-        toPlanetBox.getItems().addAll(Planet.values());
-        cargoTypeBox.getItems().addAll(CargoType.values());
-        genderBox.getItems().addAll("Male", "Female", "Other");
-        baseToBox.getItems().addAll("Base Alpha", "Base Beta");
+        Label title = new Label("Space Tourism System");
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 22));
+        title.setStyle("-fx-text-fill: #2c3e50;");
+        title.setAlignment(Pos.CENTER);
 
-        cargoOption.setToggleGroup(actionGroup);
-        travelOption.setToggleGroup(actionGroup);
-        cargoOption.setSelected(true);
+        VBox topBox = new VBox(title);
+        topBox.setAlignment(Pos.CENTER);
+        topBox.setPadding(new Insets(10, 0, 20, 0));
+        root.setTop(topBox);
 
-        VBox cargoSection = new VBox(5, new Label("From Planet:"), fromPlanetBox,
-                new Label("To Planet:"), toPlanetBox,
-                new Label("Cargo Type:"), cargoTypeBox,
-                new Label("Cargo Weight (kg):"), cargoWeightField);
+        TabPane tabPane = new TabPane();
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
-        VBox travelSection = new VBox(5, new Label("From Planet:"), fromPlanetBox,
-                new Label("To Planet:"), toPlanetBox,
-                new Label("Target Base on Arrival:"), baseToBox,
-                new Label("Gender:"), genderBox,
-                luggageCheck, new Label("Luggage Weight (kg):"), luggageWeightField);
-        travelSection.setDisable(true);
+        Tab cargoTab = new Tab("Send Cargo", buildCargoTab());
 
-        actionGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
-            boolean isCargo = cargoOption.isSelected();
-            cargoSection.setDisable(!isCargo);
-            travelSection.setDisable(isCargo);
-        });
+        Tab travelTab = new Tab("Travel", buildTravelTab());
 
-        Button submitButton = new Button("Submit");
-        submitButton.setOnAction(e -> handleSubmit());
+        tabPane.getTabs().addAll(cargoTab, travelTab);
 
-        root.getChildren().addAll(
-                new HBox(10, cargoOption, travelOption),
-                cargoSection,
-                travelSection,
-                submitButton,
-                resultLabel
-        );
+        root.setCenter(tabPane);
     }
 
-    private void handleSubmit() {
-        Planet from = fromPlanetBox.getValue();
-        Planet to = toPlanetBox.getValue();
-        if (from == null || to == null || from == to) {
-            resultLabel.setText("Source and destination planets must be different!");
-            return;
-        }
+    public Pane getRoot() {
+        return root;
+    }
 
-        if (cargoOption.isSelected()) {
+    private Pane buildCargoTab() {
+
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(20));
+        vbox.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 8; -fx-background-radius: 8;");
+        vbox.setAlignment(Pos.TOP_LEFT);
+
+        ComboBox<Planet> fromPlanetBox = new ComboBox<>();
+        ComboBox<Planet> toPlanetBox = new ComboBox<>();
+        fromPlanetBox.getItems().addAll(Planet.values());
+        toPlanetBox.getItems().addAll(Planet.values());
+
+        ComboBox<CargoType> cargoTypeBox = new ComboBox<>();
+        cargoTypeBox.getItems().addAll(CargoType.values());
+
+        TextField cargoWeightField = new TextField();
+
+        Label resultLabel = new Label();
+        resultLabel.setWrapText(true);
+
+        Image cargoImg = new Image(getClass().getResourceAsStream("/resources/icons/icons8-submit-48.png"));
+        ImageView cargoIcon = new ImageView(cargoImg);
+        cargoIcon.setFitWidth(16);
+        cargoIcon.setFitHeight(16);
+
+        Button submitButton = new Button("Submit Cargo", cargoIcon);
+        submitButton.setStyle("-fx-background-color: #3498db; -fx-text-fill: white;");
+        submitButton.setGraphicTextGap(10);
+
+        submitButton.setOnMouseEntered(e -> submitButton.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white;"));
+        submitButton.setOnMouseExited(e -> submitButton.setStyle("-fx-background-color: #3498db; -fx-text-fill: white;"));
+
+        submitButton.setOnAction(e -> {
+            Planet from = fromPlanetBox.getValue();
+            Planet to = toPlanetBox.getValue();
             CargoType type = cargoTypeBox.getValue();
+
             double weight;
             try {
                 weight = Double.parseDouble(cargoWeightField.getText());
-            } catch (Exception e) {
-                resultLabel.setText("Invalid cargo weight!");
+            } catch (Exception ex) {
+                resultLabel.setText("Invalid cargo weight.");
                 return;
             }
+
+            if (from == null || to == null || from == to) {
+                resultLabel.setText("Source and destination planets must be different!");
+                return;
+            }
+
             Cargo cargo = new Cargo(from, to, type, weight);
             resultLabel.setText(controller.processCargo(cargo));
-        } else {
+        });
+
+        vbox.getChildren().addAll(
+                new Label("From Planet:"), fromPlanetBox,
+                new Label("To Planet:"), toPlanetBox,
+                new Label("Cargo Type:"), cargoTypeBox,
+                new Label("Weight (kg):"), cargoWeightField,
+                submitButton, resultLabel
+        );
+
+        return vbox;
+    }
+
+    private Pane buildTravelTab() {
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(20));
+        vbox.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 8; -fx-background-radius: 8;");
+        vbox.setAlignment(Pos.TOP_LEFT);
+
+        ComboBox<Planet> fromPlanetBox = new ComboBox<>();
+        ComboBox<Planet> toPlanetBox = new ComboBox<>();
+        ComboBox<String> baseToBox = new ComboBox<>();
+        ComboBox<String> genderBox = new ComboBox<>();
+
+        fromPlanetBox.getItems().addAll(Planet.values());
+        toPlanetBox.getItems().addAll(Planet.values());
+        baseToBox.getItems().addAll("Base Alpha", "Base Beta");
+        genderBox.getItems().addAll("Male", "Female", "Other");
+
+        CheckBox luggageCheck = new CheckBox("Bringing luggage?");
+        TextField luggageWeightField = new TextField();
+        luggageWeightField.setDisable(true);
+
+        luggageCheck.setOnAction(e -> luggageWeightField.setDisable(!luggageCheck.isSelected()));
+
+        Label resultLabel = new Label();
+        resultLabel.setWrapText(true);
+
+        Image travelImg = new Image(getClass().getResourceAsStream("/resources/icons/icons8-submit-48.png"));
+        ImageView travelIcon = new ImageView(travelImg);
+        travelIcon.setFitWidth(16);
+        travelIcon.setFitHeight(16);
+
+        Button submitButton = new Button("Submit Travel", travelIcon);
+        submitButton.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white;");
+        submitButton.setGraphicTextGap(10);
+
+        submitButton.setOnMouseEntered(e -> submitButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white;"));
+        submitButton.setOnMouseExited(e -> submitButton.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white;"));
+
+        submitButton.setOnAction(e -> {
+            Planet from = fromPlanetBox.getValue();
+            Planet to = toPlanetBox.getValue();
             String gender = genderBox.getValue();
-            String baseTo = baseToBox.getValue();
+            String base = baseToBox.getValue();
             boolean hasLuggage = luggageCheck.isSelected();
+
             double luggageWeight = 0;
             if (hasLuggage) {
                 try {
                     luggageWeight = Double.parseDouble(luggageWeightField.getText());
-                } catch (Exception e) {
-                    resultLabel.setText("Invalid luggage weight!");
+                } catch (Exception ex) {
+                    resultLabel.setText("Invalid luggage weight.");
                     return;
                 }
             }
-            Travel travel = new Travel(from, to, baseTo, hasLuggage, luggageWeight, gender);
-            resultLabel.setText(controller.processTravel(travel));
-        }
-    }
 
-    public VBox getRoot() {
-        return root;
+            if (from == null || to == null || from == to) {
+                resultLabel.setText("Source and destination planets must be different!");
+                return;
+            }
+
+            Travel travel = new Travel(from, to, base, hasLuggage, luggageWeight, gender);
+            resultLabel.setText(controller.processTravel(travel));
+        });
+
+        vbox.getChildren().addAll(
+                new Label("From Planet:"), fromPlanetBox,
+                new Label("To Planet:"), toPlanetBox,
+                new Label("Target Base on Arrival:"), baseToBox,
+                new Label("Gender:"), genderBox,
+                luggageCheck,
+                new Label("Luggage Weight (kg):"), luggageWeightField,
+                submitButton, resultLabel
+        );
+
+        return vbox;
     }
 }

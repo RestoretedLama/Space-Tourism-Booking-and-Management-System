@@ -10,7 +10,7 @@ public class SpaceTourismApp extends Application {
 
     public void start(Stage primaryStage) {
         MainView view = new MainView();
-        Scene scene = new Scene(view.getRoot(), 500, 500);
+        Scene scene = new Scene(view.getRoot(), 1000, 1000);
         primaryStage.setTitle("Uzay Turizmi Uygulaması");
         primaryStage.setScene(scene);
         primaryStage.show();
