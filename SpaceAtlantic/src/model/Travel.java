@@ -1,26 +1,29 @@
 package model;
 
 public class Travel {
-    private String from;
-    private String to;
+    private Planet fromPlanet;
+    private Planet toPlanet;
+    private String baseTo;
     private boolean hasLuggage;
     private double luggageWeight;
     private String gender;
 
-    public Travel(String from, String to, boolean hasLuggage, double luggageWeight, String gender) {
-        this.from = from;
-        this.to = to;
+    public Travel(Planet fromPlanet, Planet toPlanet, String baseTo, boolean hasLuggage, double luggageWeight, String gender) {
+        this.fromPlanet = fromPlanet;
+        this.toPlanet = toPlanet;
+        this.baseTo = baseTo;
         this.hasLuggage = hasLuggage;
         this.luggageWeight = luggageWeight;
         this.gender = gender;
     }
 
-    @Override
-    public String toString() {
-        return "Seyahat Bilgisi:\n" +
-                "Kalkış Gezegeni: " + from + "\n" +
-                "Varış Gezegeni: " + to + "\n" +
-                "Bavul: " + (hasLuggage ? "Evet, " + luggageWeight + " kg" : "Hayır") + "\n" +
-                "Cinsiyet: " + gender;
+    public String getSummary() {
+        String summary = gender + " traveler from " + fromPlanet + " to " + toPlanet + " (Base: " + baseTo + ")";
+        if (hasLuggage) {
+            summary += " with luggage of " + luggageWeight + "kg.";
+        } else {
+            summary += " with no luggage.";
+        }
+        return summary;
     }
 }

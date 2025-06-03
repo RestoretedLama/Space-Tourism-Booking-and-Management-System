@@ -2,94 +2,113 @@ package view;
 
 import controller.MainController;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import model.Cargo;
-import model.Travel;
+import model.*;
 
 public class MainView {
 
     private VBox root;
-    private RadioButton cargoRadio, travelRadio;
-    private ComboBox<String> fromPlanet, toPlanet;
-    private ComboBox<String> cargoType;
-    private TextField cargoWeight, luggageWeight;
-    private CheckBox hasLuggage;
-    private ComboBox<String> genderBox;
-    private TextArea resultArea;
+    private ComboBox<Planet> fromPlanetBox = new ComboBox<>();
+    private ComboBox<Planet> toPlanetBox = new ComboBox<>();
+    private ComboBox<CargoType> cargoTypeBox = new ComboBox<>();
+    private TextField cargoWeightField = new TextField();
+
+    private ComboBox<String> genderBox = new ComboBox<>();
+    private CheckBox luggageCheck = new CheckBox("Bringing luggage?");
+    private TextField luggageWeightField = new TextField();
+    private ComboBox<String> baseToBox = new ComboBox<>();
+
+    private ToggleGroup actionGroup = new ToggleGroup();
+    private RadioButton cargoOption = new RadioButton("Send Cargo");
+    private RadioButton travelOption = new RadioButton("Travel");
+
+    private Label resultLabel = new Label();
+    private MainController controller = new MainController();
 
     public MainView() {
-        buildUI();
+        root = new VBox(10);
+        root.setPadding(new Insets(20));
+
+        fromPlanetBox.getItems().addAll(Planet.values());
+        toPlanetBox.getItems().addAll(Planet.values());
+        cargoTypeBox.getItems().addAll(CargoType.values());
+        genderBox.getItems().addAll("Male", "Female", "Other");
+        baseToBox.getItems().addAll("Base Alpha", "Base Beta");
+
+        cargoOption.setToggleGroup(actionGroup);
+        travelOption.setToggleGroup(actionGroup);
+        cargoOption.setSelected(true);
+
+        VBox cargoSection = new VBox(5, new Label("From Planet:"), fromPlanetBox,
+                new Label("To Planet:"), toPlanetBox,
+                new Label("Cargo Type:"), cargoTypeBox,
+                new Label("Cargo Weight (kg):"), cargoWeightField);
+
+        VBox travelSection = new VBox(5, new Label("From Planet:"), fromPlanetBox,
+                new Label("To Planet:"), toPlanetBox,
+                new Label("Target Base on Arrival:"), baseToBox,
+                new Label("Gender:"), genderBox,
+                luggageCheck, new Label("Luggage Weight (kg):"), luggageWeightField);
+        travelSection.setDisable(true);
+
+        actionGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
+            boolean isCargo = cargoOption.isSelected();
+            cargoSection.setDisable(!isCargo);
+            travelSection.setDisable(isCargo);
+        });
+
+        Button submitButton = new Button("Submit");
+        submitButton.setOnAction(e -> handleSubmit());
+
+        root.getChildren().addAll(
+                new HBox(10, cargoOption, travelOption),
+                cargoSection,
+                travelSection,
+                submitButton,
+                resultLabel
+        );
+    }
+
+    private void handleSubmit() {
+        Planet from = fromPlanetBox.getValue();
+        Planet to = toPlanetBox.getValue();
+        if (from == null || to == null || from == to) {
+            resultLabel.setText("Source and destination planets must be different!");
+            return;
+        }
+
+        if (cargoOption.isSelected()) {
+            CargoType type = cargoTypeBox.getValue();
+            double weight;
+            try {
+                weight = Double.parseDouble(cargoWeightField.getText());
+            } catch (Exception e) {
+                resultLabel.setText("Invalid cargo weight!");
+                return;
+            }
+            Cargo cargo = new Cargo(from, to, type, weight);
+            resultLabel.setText(controller.processCargo(cargo));
+        } else {
+            String gender = genderBox.getValue();
+            String baseTo = baseToBox.getValue();
+            boolean hasLuggage = luggageCheck.isSelected();
+            double luggageWeight = 0;
+            if (hasLuggage) {
+                try {
+                    luggageWeight = Double.parseDouble(luggageWeightField.getText());
+                } catch (Exception e) {
+                    resultLabel.setText("Invalid luggage weight!");
+                    return;
+                }
+            }
+            Travel travel = new Travel(from, to, baseTo, hasLuggage, luggageWeight, gender);
+            resultLabel.setText(controller.processTravel(travel));
+        }
     }
 
     public VBox getRoot() {
         return root;
-    }
-
-    private void buildUI() {
-        ToggleGroup actionGroup = new ToggleGroup();
-        cargoRadio = new RadioButton("Kargo Gönder");
-        travelRadio = new RadioButton("Seyahat Et");
-        cargoRadio.setToggleGroup(actionGroup);
-        travelRadio.setToggleGroup(actionGroup);
-        HBox actionBox = new HBox(10, cargoRadio, travelRadio);
-
-        fromPlanet = new ComboBox<>();
-        toPlanet = new ComboBox<>();
-        fromPlanet.getItems().addAll("Dünya", "Mars", "Venüs", "Jüpiter");
-        toPlanet.getItems().addAll("Dünya", "Mars", "Venüs", "Jüpiter");
-        HBox planetBox = new HBox(10, new Label("Nereden:"), fromPlanet, new Label("Nereye:"), toPlanet);
-
-        cargoType = new ComboBox<>();
-        cargoType.getItems().addAll("Gıda", "Elektronik", "Ekipman", "İlaç");
-        cargoWeight = new TextField();
-        cargoWeight.setPromptText("Kargo Ağırlığı (kg)");
-        VBox cargoBox = new VBox(10, new Label("Kargo Türü:"), cargoType, cargoWeight);
-        cargoBox.setPadding(new Insets(10));
-        cargoBox.setVisible(false);
-
-        hasLuggage = new CheckBox("Bavul getiriyor musunuz?");
-        luggageWeight = new TextField();
-        luggageWeight.setPromptText("Bavul Ağırlığı (kg)");
-        luggageWeight.setDisable(true);
-        VBox travelBox = new VBox(10, hasLuggage, luggageWeight);
-        travelBox.setPadding(new Insets(10));
-        travelBox.setVisible(false);
-
-        genderBox = new ComboBox<>();
-        genderBox.getItems().addAll("Kadın", "Erkek", "Diğer");
-
-        Button submitButton = new Button("Gönder");
-        resultArea = new TextArea();
-        resultArea.setEditable(false);
-
-        // Bağlantılar ve olaylar
-        hasLuggage.setOnAction(e -> luggageWeight.setDisable(!hasLuggage.isSelected()));
-        cargoRadio.setOnAction(e -> {
-            cargoBox.setVisible(true);
-            travelBox.setVisible(false);
-        });
-        travelRadio.setOnAction(e -> {
-            cargoBox.setVisible(false);
-            travelBox.setVisible(true);
-        });
-
-        submitButton.setOnAction(e -> {
-            MainController.handleSubmission(
-                    cargoRadio.isSelected(),
-                    fromPlanet.getValue(),
-                    toPlanet.getValue(),
-                    cargoType.getValue(),
-                    cargoWeight.getText(),
-                    hasLuggage.isSelected(),
-                    luggageWeight.getText(),
-                    genderBox.getValue(),
-                    resultArea
-            );
-        });
-
-        root = new VBox(15, actionBox, planetBox, cargoBox, travelBox,
-                new Label("Cinsiyet Seçiniz:"), genderBox, submitButton, resultArea);
-        root.setPadding(new Insets(20));
     }
 }

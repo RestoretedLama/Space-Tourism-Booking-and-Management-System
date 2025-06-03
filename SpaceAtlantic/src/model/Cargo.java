@@ -1,27 +1,23 @@
 package model;
 
-public class Cargo {
-    private String from;
-    private String to;
-    private String type;
-    private double weight;
-    private String gender;
+import model.CargoType;
+import model.Planet;
 
-    public Cargo(String from, String to, String type, double weight, String gender) {
-        this.from = from;
-        this.to = to;
+public class Cargo {
+    private Planet fromPlanet;
+    private Planet toPlanet;
+    private CargoType type;
+    private double weight;
+
+    public Cargo(Planet fromPlanet, Planet toPlanet, CargoType type, double weight) {
+        this.fromPlanet = fromPlanet;
+        this.toPlanet = toPlanet;
         this.type = type;
         this.weight = weight;
-        this.gender = gender;
     }
 
-    @Override
-    public String toString() {
-        return "Kargo Gönderimi:\n" +
-                "Gönderen Gezegeni: " + from + "\n" +
-                "Hedef Gezegeni: " + to + "\n" +
-                "Kargo Türü: " + type + "\n" +
-                "Ağırlık: " + weight + " kg\n" +
-                "Cinsiyet: " + gender;
+    public String getSummary() {
+        return "Sending " + weight + "kg of " + type +
+                " cargo from " + fromPlanet + " to " + toPlanet;
     }
 }
