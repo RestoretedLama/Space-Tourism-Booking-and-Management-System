@@ -17,6 +17,14 @@ public class Travel {
         this.gender = gender;
     }
 
+    public Planet getFromPlanet() {
+        return fromPlanet;
+    }
+
+    public Planet getToPlanet() {
+        return toPlanet;
+    }
+
     public String getSummary() {
         String summary = gender + " traveler from " + fromPlanet + " to " + toPlanet + " (Base: " + baseTo + ")";
         if (hasLuggage) {
