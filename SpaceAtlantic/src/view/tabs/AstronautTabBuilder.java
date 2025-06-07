@@ -6,7 +6,7 @@ import javafx.scene.layout.VBox;
 import model.Astronaut;
 
 public class AstronautTabBuilder {
-    public static VBox build() {
+    public static VBox build(TabPane tabPane) {
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(20));
 
@@ -29,6 +29,7 @@ public class AstronautTabBuilder {
 
                 Astronaut astronaut = new Astronaut(id, name, exp, role, supId);
                 resultLabel.setText(astronaut.getSummary());
+                tabPane.getSelectionModel().selectNext();
             } catch (Exception ex) {
                 resultLabel.setText("Invalid input.");
             }

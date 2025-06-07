@@ -6,7 +6,7 @@ import javafx.scene.layout.VBox;
 import model.Booking;
 
 public class BookingTabBuilder {
-    public static VBox build() {
+    public static VBox build(TabPane tabPane) {
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(20));
 
@@ -46,6 +46,7 @@ public class BookingTabBuilder {
                 );
 
                 resultLabel.setText(booking.getSummary());
+                tabPane.getSelectionModel().selectNext();
 
             } catch (Exception ex) {
                 resultLabel.setText("Invalid input. Please check numbers and dates.");

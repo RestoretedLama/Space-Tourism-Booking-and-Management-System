@@ -6,7 +6,6 @@ import javafx.scene.layout.VBox;
 import model.Destination;
 import model.Rocket;
 
-
 public class RocketAndDestinationTabBuilder {
     public static TabPane build() {
         TabPane tabPane = new TabPane();
@@ -27,7 +26,8 @@ public class RocketAndDestinationTabBuilder {
                         Integer.parseInt(rocketIdField.getText()),
                         rocketNameField.getText(),
                         rocketTypeField.getText(),
-                        Double.parseDouble(rocketRangeField.getText()));
+                        Double.parseDouble(rocketRangeField.getText())
+                );
                 rocketLabel.setText(r.getSummary());
             } catch (Exception ex) {
                 rocketLabel.setText("Invalid input.");
@@ -56,7 +56,8 @@ public class RocketAndDestinationTabBuilder {
                         Integer.parseInt(destIdField.getText()),
                         planetField.getText(),
                         regionField.getText(),
-                        Double.parseDouble(distanceField.getText()));
+                        Double.parseDouble(distanceField.getText())
+                );
                 destLabel.setText(d.getSummary());
             } catch (Exception ex) {
                 destLabel.setText("Invalid input.");

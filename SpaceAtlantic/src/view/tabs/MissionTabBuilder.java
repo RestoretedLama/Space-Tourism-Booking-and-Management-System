@@ -6,7 +6,7 @@ import javafx.scene.layout.VBox;
 import model.Mission;
 
 public class MissionTabBuilder {
-    public static VBox build() {
+    public static VBox build(TabPane tabPane) {
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(20));
 
@@ -33,6 +33,7 @@ public class MissionTabBuilder {
 
                 Mission mission = new Mission(missionId, location, days, cap, siteId, destId, rocketId);
                 resultLabel.setText(mission.getSummary());
+                tabPane.getSelectionModel().selectNext();
 
             } catch (Exception ex) {
                 resultLabel.setText("Invalid input.");

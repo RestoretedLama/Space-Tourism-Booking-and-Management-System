@@ -7,7 +7,7 @@ import javafx.scene.layout.VBox;
 import model.Guest;
 
 public class GuestTabBuilder {
-    public static VBox build(MainController controller) {
+    public static VBox build(MainController controller, TabPane tabPane) {
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(20));
 
@@ -38,6 +38,7 @@ public class GuestTabBuilder {
 
                 Guest guest = new Guest(id, name, age, nationality, gender, contact);
                 resultLabel.setText(controller.processGuest(guest));
+                tabPane.getSelectionModel().selectNext();
             } catch (Exception ex) {
                 resultLabel.setText("Invalid input.");
             }
@@ -50,9 +51,9 @@ public class GuestTabBuilder {
                 new Label("Nationality:"), nationalityField,
                 new Label("Gender:"), genderBox,
                 new Label("Contact Info:"), contactField,
-                submitButton,
-                resultLabel
+                submitButton, resultLabel
         );
+
         return vbox;
     }
 }

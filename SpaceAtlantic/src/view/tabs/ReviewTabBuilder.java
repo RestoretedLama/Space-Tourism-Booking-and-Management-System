@@ -6,7 +6,7 @@ import javafx.scene.layout.VBox;
 import model.Review;
 
 public class ReviewTabBuilder {
-    public static VBox build() {
+    public static VBox build(TabPane tabPane) {
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(20));
 
@@ -33,7 +33,7 @@ public class ReviewTabBuilder {
 
                 Review review = new Review(reviewId, rating, comment, datePicker.getValue(), guestId);
                 resultLabel.setText(review.getSummary());
-
+                tabPane.getSelectionModel().selectNext();
             } catch (Exception ex) {
                 resultLabel.setText("Invalid input.");
             }

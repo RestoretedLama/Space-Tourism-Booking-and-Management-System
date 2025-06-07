@@ -11,7 +11,7 @@ import model.*;
 import view.tabs.*;
 
 public class MainView {
-
+    private TabPane tabPane;
     private BorderPane root;
     private MainController controller = new MainController();
 
@@ -30,17 +30,17 @@ public class MainView {
         topBox.setPadding(new Insets(10, 0, 20, 0));
         root.setTop(topBox);
 
-        TabPane tabPane = new TabPane();
+        tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         tabPane.getTabs().addAll(
-                new Tab("Guest Registration", GuestTabBuilder.build(controller)),
-                new Tab("Travel", TravelTabBuilder.build(controller)),
-                new Tab("Booking", BookingTabBuilder.build()),
-                new Tab("Payment", PaymentTabBuilder.build()),
-                new Tab("Review", ReviewTabBuilder.build()),
-                new Tab("Mission", MissionTabBuilder.build()),
-                new Tab("Astronaut", AstronautTabBuilder.build()),
+                new Tab("Guest Registration", GuestTabBuilder.build(controller, tabPane)),
+                new Tab("Travel", TravelTabBuilder.build(controller, tabPane)),
+                new Tab("Booking", BookingTabBuilder.build(tabPane)),
+                new Tab("Payment", PaymentTabBuilder.build(tabPane)),
+                new Tab("Review", ReviewTabBuilder.build(tabPane)),
+                new Tab("Mission", MissionTabBuilder.build(tabPane)),
+                new Tab("Astronaut", AstronautTabBuilder.build(tabPane)),
                 new Tab("Rocket & Destination", RocketAndDestinationTabBuilder.build())
         );
 
@@ -50,4 +50,5 @@ public class MainView {
     public Pane getRoot() {
         return root;
     }
+
 }

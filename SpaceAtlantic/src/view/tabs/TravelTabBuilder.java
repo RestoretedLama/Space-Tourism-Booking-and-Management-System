@@ -8,7 +8,7 @@ import model.Planet;
 import model.Travel;
 
 public class TravelTabBuilder {
-    public static VBox build(MainController controller) {
+    public static VBox build(MainController controller, TabPane tabPane) {
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(20));
 
@@ -25,7 +25,6 @@ public class TravelTabBuilder {
         CheckBox luggageCheck = new CheckBox("Bringing luggage?");
         TextField luggageWeightField = new TextField();
         luggageWeightField.setDisable(true);
-
         luggageCheck.setOnAction(e -> luggageWeightField.setDisable(!luggageCheck.isSelected()));
 
         Label resultLabel = new Label();
@@ -55,6 +54,7 @@ public class TravelTabBuilder {
 
             Travel travel = new Travel(from, to, base, hasLuggage, luggageWeight, gender);
             resultLabel.setText(controller.processTravel(travel));
+            tabPane.getSelectionModel().selectNext();
         });
 
         vbox.getChildren().addAll(
@@ -64,9 +64,9 @@ public class TravelTabBuilder {
                 new Label("Gender:"), genderBox,
                 luggageCheck,
                 new Label("Luggage Weight (kg):"), luggageWeightField,
-                submitButton,
-                resultLabel
+                submitButton, resultLabel
         );
+
         return vbox;
     }
 }
