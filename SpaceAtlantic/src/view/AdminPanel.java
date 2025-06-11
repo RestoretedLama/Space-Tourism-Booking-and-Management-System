@@ -28,6 +28,7 @@ public class AdminPanel {
     private TableView<Mission> missionTable = new TableView<>();
 
     private Button createMissionBtn = new Button("Create Mission");
+    private Button deleteMissionBtn = new Button("Delete Selected Mission");
     private Label statusLabel = new Label();
 
     public AdminPanel() {
@@ -49,6 +50,7 @@ public class AdminPanel {
                 new Label("Crew Astronaut:"), crewBox,
                 new Label("Travel Days:"), travelDaysField,
                 createMissionBtn,
+                deleteMissionBtn,
                 statusLabel,
                 new Label("All Missions:"), missionTable
         );
@@ -57,6 +59,7 @@ public class AdminPanel {
         refreshMissionTable();
 
         createMissionBtn.setOnAction(e -> createMission());
+        deleteMissionBtn.setOnAction(e -> deleteSelectedMission());
     }
 
     public VBox getRoot() {
@@ -108,16 +111,16 @@ public class AdminPanel {
         supervisorBox.getItems().clear();
         crewBox.getItems().clear();
 
-        // Rocket, Destination, LaunchSite combo boxlarını AdminController’dan doldur
+        // Rocket, Destination, LaunchSite combo boxlarını AdminController'dan doldur
         adminController.initComboBoxes(destinationBox, launchSiteBox, supervisorBox, crewBox);
 
-        // RocketBox için özel listeyi çekebiliriz, burada örnek olarak sadece comboBox’a items koyuyoruz
+        // RocketBox için özel listeyi çekebiliriz, burada örnek olarak sadece comboBox'a items koyuyoruz
         // Eğer istersek, destination seçimine göre rocketBox da filtrelenebilir
         // Şimdilik tüm roketleri listele
 
-        // Örneğin rocketBox’a tüm roketleri çekmek için:
-        // Ancak AdminController’da böyle bir metod yoksa, eklenmeli
-        // Bu örnekte, örnek amaçlı rocketBox’a kendi listemizi ekleyelim
+        // Örneğin rocketBox'a tüm roketleri çekmek için:
+        // Ancak AdminController'da böyle bir metod yoksa, eklenmeli
+        // Bu örnekte, örnek amaçlı rocketBox'a kendi listemizi ekleyelim
         // Ya da aşağıdaki gibi loadRockets metodu çağrılabilir
 
         // Şimdilik rocketBox items boş, destination seçildiğinde rocketBox yükleniyor:
@@ -169,5 +172,34 @@ public class AdminPanel {
 
         // Listeyi yenile
         refreshMissionTable();
+    }
+
+    private void deleteSelectedMission() {
+        Mission selectedMission = missionTable.getSelectionModel().getSelectedItem();
+        
+        if (selectedMission == null) {
+            statusLabel.setText("Please select a mission to delete.");
+            return;
+        }
+        
+        // Confirmation dialog
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Mission");
+        alert.setHeaderText("Confirm Mission Deletion");
+        alert.setContentText("Are you sure you want to delete mission #" + selectedMission.getId() + 
+                           " to " + selectedMission.getDestinationName() + "?");
+        
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                boolean success = adminController.deleteMission(selectedMission.getId());
+                
+                if (success) {
+                    statusLabel.setText("Mission deleted successfully.");
+                    refreshMissionTable();
+                } else {
+                    statusLabel.setText("Cannot delete mission. It may have active bookings.");
+                }
+            }
+        });
     }
 }

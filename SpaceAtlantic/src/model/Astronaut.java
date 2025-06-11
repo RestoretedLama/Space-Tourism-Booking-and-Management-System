@@ -29,4 +29,9 @@ public class Astronaut {
     public String getSummary() {
         return "Astronaut #" + astronautId + ": " + fullName + " (" + role + ", " + experienceYears + " yrs)";
     }
+
+    @Override
+    public String toString() {
+        return fullName + " (" + role + ")";
+    }
 }

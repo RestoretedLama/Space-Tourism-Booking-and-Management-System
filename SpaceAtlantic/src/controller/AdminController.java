@@ -13,12 +13,12 @@ public class AdminController {
     public List<Mission> getAllMissions() {
         List<Mission> list = new ArrayList<>();
         String query = """
-            SELECT m.mission_id, r.name AS rocket_name, d.planet AS destination_name, ls.name AS launch_site_name,
+            SELECT m.mission_id, r.name AS rocket_name, d.planet_name AS destination_name, ls.site_name AS launch_site_name,
                    m.travel_time_days, sup.full_name AS supervisor_name, crew.full_name AS crew_name
             FROM Missions m
             JOIN Rockets r ON m.rocket_id = r.rocket_id
             JOIN Destinations d ON m.destination_id = d.destination_id
-            JOIN Launch_Sites ls ON m.launch_site_id = ls.launch_site_id
+            JOIN Launch_Sites ls ON m.launch_site_id = ls.site_id
             JOIN Mission_Astronauts sup_assoc ON m.mission_id = sup_assoc.mission_id AND sup_assoc.role = 'Supervisor'
             JOIN Astronauts sup ON sup_assoc.astronaut_id = sup.astronaut_id
             JOIN Mission_Astronauts crew_assoc ON m.mission_id = crew_assoc.mission_id AND crew_assoc.role = 'Crew'
@@ -147,5 +147,47 @@ public class AdminController {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    // Mission silme metodu
+    public boolean deleteMission(int missionId) {
+        try (Connection conn = DatabaseConnector.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            // Önce bu mission'a ait booking'leri kontrol et
+            PreparedStatement checkStmt = conn.prepareStatement(
+                "SELECT COUNT(*) FROM Bookings WHERE mission_id = ? AND status = 'Confirmed'"
+            );
+            checkStmt.setInt(1, missionId);
+            ResultSet rs = checkStmt.executeQuery();
+            rs.next();
+            int bookingCount = rs.getInt(1);
+            
+            if (bookingCount > 0) {
+                // Eğer aktif booking varsa silmeye izin verme
+                return false;
+            }
+            
+            // Mission_Astronauts tablosundan kayıtları sil
+            PreparedStatement astroStmt = conn.prepareStatement(
+                "DELETE FROM Mission_Astronauts WHERE mission_id = ?"
+            );
+            astroStmt.setInt(1, missionId);
+            astroStmt.executeUpdate();
+            
+            // Missions tablosundan kaydı sil
+            PreparedStatement missionStmt = conn.prepareStatement(
+                "DELETE FROM Missions WHERE mission_id = ?"
+            );
+            missionStmt.setInt(1, missionId);
+            int result = missionStmt.executeUpdate();
+            
+            conn.commit();
+            return result > 0;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
