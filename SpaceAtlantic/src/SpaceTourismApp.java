@@ -27,7 +27,7 @@ public class SpaceTourismApp extends Application {
 
         Scene scene = new Scene(tabPane, 1000, 700);
 
-        primaryStage.setTitle("Uzay Turizmi Uygulaması");
+        primaryStage.setTitle("Uzay Turizmi Uygulamasi");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
