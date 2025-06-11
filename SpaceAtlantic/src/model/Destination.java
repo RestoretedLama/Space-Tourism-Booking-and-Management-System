@@ -1,24 +1,31 @@
 package model;
 
 public class Destination {
-    private int destinationId;
-    private String planetName;
-    private String regionName;
-    private double distanceMillionKm;
+    private int id;
+    private String planet;
+    private String region;
+    private double distance;
 
-    public Destination(int destinationId, String planetName, String regionName, double distanceMillionKm) {
-        this.destinationId = destinationId;
-        this.planetName = planetName;
-        this.regionName = regionName;
-        this.distanceMillionKm = distanceMillionKm;
+    public Destination(int id, String planet, String region, double distance) {
+        this.id = id;
+        this.planet = planet;
+        this.region = region;
+        this.distance = distance;
     }
 
-    public int getDestinationId() { return destinationId; }
-    public String getPlanetName() { return planetName; }
-    public String getRegionName() { return regionName; }
-    public double getDistanceMillionKm() { return distanceMillionKm; }
+    public int getId() { return id; }
+    public String getPlanet() { return planet; }
+    public String getRegion() { return region; }
+    public double getDistance() { return distance; }
 
     public String getSummary() {
-        return "Destination #" + destinationId + ": " + planetName + " (" + regionName + "), Distance: " + distanceMillionKm + "M km";
+        return "Destination #" + id + ": " + planet +
+                (region != null && !region.isEmpty() ? " - " + region : "") +
+                ", Distance: " + distance + " million km";
+    }
+
+    @Override
+    public String toString() {
+        return planet + (region != null ? " - " + region : "") + " (" + distance + "M km)";
     }
 }

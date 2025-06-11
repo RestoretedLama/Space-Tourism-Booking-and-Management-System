@@ -21,8 +21,12 @@ public class Astronaut {
     public String getRole() { return role; }
     public Integer getSupervisorId() { return supervisorId; }
 
+    // Yeni eklenen getId() metodu
+    public int getId() {
+        return astronautId;
+    }
+
     public String getSummary() {
         return "Astronaut #" + astronautId + ": " + fullName + " (" + role + ", " + experienceYears + " yrs)";
     }
 }
-// selam

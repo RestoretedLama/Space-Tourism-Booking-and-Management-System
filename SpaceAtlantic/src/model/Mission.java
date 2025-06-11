@@ -1,35 +1,41 @@
 package model;
 
 public class Mission {
-    private int missionId;
-    private String departureLocation;
-    private int travelTimeDays;
-    private int capacity;
-    private int siteId;
-    private int destinationId;
-    private int rocketId;
+    private int id;
+    private String rocketName;
+    private String destinationName;
+    private String launchSiteName;
+    private int travelDays;
+    private String supervisorName;
+    private String crewName;
 
-    public Mission(int missionId, String departureLocation, int travelTimeDays, int capacity,
-                   int siteId, int destinationId, int rocketId) {
-        this.missionId = missionId;
-        this.departureLocation = departureLocation;
-        this.travelTimeDays = travelTimeDays;
-        this.capacity = capacity;
-        this.siteId = siteId;
-        this.destinationId = destinationId;
-        this.rocketId = rocketId;
+    public Mission(int id, String rocketName, String destinationName, String launchSiteName, int travelDays,
+                   String supervisorName, String crewName) {
+        this.id = id;
+        this.rocketName = rocketName;
+        this.destinationName = destinationName;
+        this.launchSiteName = launchSiteName;
+        this.travelDays = travelDays;
+        this.supervisorName = supervisorName;
+        this.crewName = crewName;
     }
 
-    public int getMissionId() { return missionId; }
-    public String getDepartureLocation() { return departureLocation; }
-    public int getTravelTimeDays() { return travelTimeDays; }
-    public int getCapacity() { return capacity; }
-    public int getSiteId() { return siteId; }
-    public int getDestinationId() { return destinationId; }
-    public int getRocketId() { return rocketId; }
+    // Getters
+    public int getId() { return id; }
+    public String getRocketName() { return rocketName; }
+    public String getDestinationName() { return destinationName; }
+    public String getLaunchSiteName() { return launchSiteName; }
+    public int getTravelDays() { return travelDays; }
+    public String getSupervisorName() { return supervisorName; }
+    public String getCrewName() { return crewName; }
 
     public String getSummary() {
-        return "Mission #" + missionId + ": " + departureLocation + " → Destination " + destinationId +
-                " in " + travelTimeDays + " days (Capacity: " + capacity + ")";
+        return "Mission #" + id +
+                ": Rocket=" + rocketName +
+                ", Destination=" + destinationName +
+                ", Launch Site=" + launchSiteName +
+                ", Travel Days=" + travelDays +
+                ", Supervisor=" + supervisorName +
+                ", Crew=" + crewName;
     }
 }

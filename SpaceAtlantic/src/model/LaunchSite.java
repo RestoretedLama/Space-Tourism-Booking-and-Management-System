@@ -1,30 +1,19 @@
 package model;
 
 public class LaunchSite {
-    private int siteId;
-    private String siteName;
-    private String location;
-    private String country;
-    private double altitudeMeters;
-    private int capacity;
+    private int id;
+    private String name;
 
-    public LaunchSite(int siteId, String siteName, String location, String country, double altitudeMeters, int capacity) {
-        this.siteId = siteId;
-        this.siteName = siteName;
-        this.location = location;
-        this.country = country;
-        this.altitudeMeters = altitudeMeters;
-        this.capacity = capacity;
+    public LaunchSite(int id, String name) {
+        this.id = id;
+        this.name = name;
     }
 
-    public int getSiteId() { return siteId; }
-    public String getSiteName() { return siteName; }
-    public String getLocation() { return location; }
-    public String getCountry() { return country; }
-    public double getAltitudeMeters() { return altitudeMeters; }
-    public int getCapacity() { return capacity; }
+    public int getId() { return id; }
+    public String getName() { return name; }
 
-    public String getSummary() {
-        return "Launch Site #" + siteId + ": " + siteName + " (" + country + "), Altitude: " + altitudeMeters + "m";
+    @Override
+    public String toString() {
+        return name;
     }
 }

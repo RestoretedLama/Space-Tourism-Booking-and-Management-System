@@ -1,24 +1,31 @@
 package model;
 
 public class Rocket {
-    private int rocketId;
+    private int id;
     private String name;
     private String type;
-    private double maxRangeMillionKm;
+    private double maxRange;
+    private int capacity;
 
-    public Rocket(int rocketId, String name, String type, double maxRangeMillionKm) {
-        this.rocketId = rocketId;
+    public Rocket(int id, String name, String type, double maxRange, int capacity) {
+        this.id = id;
         this.name = name;
         this.type = type;
-        this.maxRangeMillionKm = maxRangeMillionKm;
+        this.maxRange = maxRange;
+        this.capacity = capacity;
     }
 
-    public int getRocketId() { return rocketId; }
+    public int getId() { return id; }
     public String getName() { return name; }
-    public String getType() { return type; }
-    public double getMaxRangeMillionKm() { return maxRangeMillionKm; }
+    public double getMaxRange() { return maxRange; }
+    public int getCapacity() { return capacity; }
 
-    public String getSummary() {
-        return "Rocket #" + rocketId + ": " + name + " (" + type + "), Max Range: " + maxRangeMillionKm + " million km";
+    @Override
+    public String toString() {
+        return name + " (" + type + ", " + maxRange + "M km)";
     }
+    public String getSummary() {
+        return "Rocket #" + id + ": " + name + " (" + type + "), Max Range: " + maxRange + " million km";
+    }
+
 }

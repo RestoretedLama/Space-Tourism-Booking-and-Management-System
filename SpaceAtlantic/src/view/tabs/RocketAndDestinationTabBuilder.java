@@ -21,17 +21,14 @@ public class RocketAndDestinationTabBuilder {
         Label rocketLabel = new Label();
         Button rocketBtn = new Button("Save Rocket");
         rocketBtn.setOnAction(e -> {
-            try {
-                Rocket r = new Rocket(
-                        Integer.parseInt(rocketIdField.getText()),
-                        rocketNameField.getText(),
-                        rocketTypeField.getText(),
-                        Double.parseDouble(rocketRangeField.getText())
-                );
-                rocketLabel.setText(r.getSummary());
-            } catch (Exception ex) {
-                rocketLabel.setText("Invalid input.");
-            }
+            Rocket r = new Rocket(
+                    Integer.parseInt(rocketIdField.getText()),
+                    rocketNameField.getText(),
+                    rocketTypeField.getText(),
+                    Double.parseDouble(rocketRangeField.getText()),
+                    0 // kapasiteyi default 0 yapıyorum
+            );
+
         });
         rocketBox.getChildren().addAll(
                 new Label("Rocket ID:"), rocketIdField,

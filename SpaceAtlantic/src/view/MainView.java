@@ -10,6 +10,8 @@ import javafx.scene.text.FontWeight;
 import model.*;
 import view.tabs.*;
 
+import java.util.List;
+
 public class MainView {
     private TabPane tabPane;
     private BorderPane root;
@@ -33,13 +35,20 @@ public class MainView {
         tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
+        // Controller'dan gerekli listeleri al
+        List<Rocket> rockets = controller.getRockets();
+        List<Destination> destinations = controller.getDestinations();
+        List<LaunchSite> launchSites = controller.getLaunchSites();
+        List<Astronaut> supervisors = controller.getSupervisors();
+        List<Astronaut> crews = controller.getCrews();
+
         tabPane.getTabs().addAll(
                 new Tab("Guest Registration", GuestTabBuilder.build(controller, tabPane)),
                 new Tab("Travel", TravelTabBuilder.build(controller, tabPane)),
                 new Tab("Booking", BookingTabBuilder.build(tabPane)),
                 new Tab("Payment", PaymentTabBuilder.build(tabPane)),
                 new Tab("Review", ReviewTabBuilder.build(tabPane)),
-                new Tab("Mission", MissionTabBuilder.build(tabPane)),
+                new Tab("Mission", MissionTabBuilder.build(rockets, destinations, launchSites, supervisors, crews)),
                 new Tab("Astronaut", AstronautTabBuilder.build(tabPane)),
                 new Tab("Rocket & Destination", RocketAndDestinationTabBuilder.build())
         );
@@ -50,5 +59,4 @@ public class MainView {
     public Pane getRoot() {
         return root;
     }
-
 }
