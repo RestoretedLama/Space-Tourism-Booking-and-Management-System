@@ -14,23 +14,22 @@ CREATE TABLE Guests (
 CREATE TABLE Astronauts (
     astronaut_id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100),
-    experience_years INT,
     role ENUM('Supervisor', 'Crew') NOT NULL,
     supervisor_id INT DEFAULT NULL,
     FOREIGN KEY (supervisor_id) REFERENCES Astronauts(astronaut_id)
 );
 
-INSERT INTO Astronauts (full_name, experience_years, role) VALUES
-('Neil Armstrong', 20, 'Supervisor'),
-('Edwin "Buzz" Aldrin', 18, 'Supervisor'),
-('Charles "Pete" Conrad', 15, 'Supervisor'),
-('Alan Shepard', 22, 'Supervisor'),
-('John Young', 24, 'Supervisor'),
-('Alan Bean', 14, 'Crew'),
-('Edgar Mitchell', 16, 'Crew'),
-('David Scott', 17, 'Crew'),
-('James Irwin', 14, 'Crew'),
-('Charles Duke', 13, 'Crew');
+INSERT INTO Astronauts (full_name, role) VALUES
+('Neil Armstrong',  'Supervisor'),
+('Edwin "Buzz" Aldrin', 'Supervisor'),
+('Charles "Pete" Conrad', 'Supervisor'),
+('Alan Shepard', 'Supervisor'),
+('John Young', 'Supervisor'),
+('Alan Bean', 'Crew'),
+('Edgar Mitchell', 'Crew'),
+('David Scott',  'Crew'),
+('James Irwin', 'Crew'),
+('Charles Duke', 'Crew');
 -- 4
 CREATE TABLE Destinations (
     destination_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -51,32 +50,33 @@ INSERT INTO Destinations (planet_name, region_name, distance_million_km) VALUES
 ('Neptune', 'Triton', 4350.00),
 ('Pluto', 'Charon', 5900.00);
 -- 5
+
 CREATE TABLE Rockets (
     rocket_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100),
     type VARCHAR(50),
-    max_range_million_km DECIMAL(10,2)
+    max_range_million_km DECIMAL(10,2),
+    capacity INT  
 );
 
-INSERT INTO Rockets (name, type, max_range_million_km) VALUES
-('SpaceX Starship', 'Heavy', 6000.00),
-('Eclipse', 'Medium', 3000.00),
-('Nova', 'Light', 1300.00),
-('New Glenn', 'Heavy', 700.00),
-('Red Dwarf', 'Medium', 0.50);
+INSERT INTO Rockets (name, type, max_range_million_km, capacity) VALUES
+('SpaceX Starship', 'Heavy', 6000.00, 5),
+('Eclipse', 'Medium', 3000.00, 4),
+('Nova', 'Light', 1300.00, 3),
+('New Glenn', 'Heavy', 700.00, 2),
+('Red Dwarf', 'Medium', 0.50, 2);
+
 -- 6
 CREATE TABLE Launch_Sites (
     site_id INT AUTO_INCREMENT PRIMARY KEY,
     site_name VARCHAR(150),
     location VARCHAR(100),
-    country VARCHAR(50),
-    altitude_meters DECIMAL(8,2),
-    capacity INT
+    country VARCHAR(50)
 );
 
-INSERT INTO Launch_Sites (site_name, location, country, altitude_meters, capacity) VALUES
-('Cape Canaveral Space Launch Complex 40', 'Florida', 'USA', 3.05, 20),
-('Vandenberg Space Force Base Space Launch Complex 4E', 'California', 'USA', 10.00, 15);
+INSERT INTO Launch_Sites (site_name, location, country) VALUES
+('Cape Canaveral Space Launch Complex 40', 'Florida', 'USA'),
+('Vandenberg Space Force Base Space Launch Complex 4E', 'California', 'USA');
 -- 7
 CREATE TABLE Missions (
     mission_id INT AUTO_INCREMENT PRIMARY KEY,
