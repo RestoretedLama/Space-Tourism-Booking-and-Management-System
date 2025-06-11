@@ -23,6 +23,9 @@ public class AdminPanel {
     private ComboBox<Astronaut> supervisorBox = new ComboBox<>();
     private ComboBox<Astronaut> crewBox = new ComboBox<>();
     private TextField travelDaysField = new TextField();
+    private TextField amountField = new TextField();
+    private DatePicker launchDatePicker = new DatePicker();
+    private DatePicker returnDatePicker = new DatePicker();
 
     // Görev tablosu
     private TableView<Mission> missionTable = new TableView<>();
@@ -49,6 +52,9 @@ public class AdminPanel {
                 new Label("Supervisor Astronaut:"), supervisorBox,
                 new Label("Crew Astronaut:"), crewBox,
                 new Label("Travel Days:"), travelDaysField,
+                new Label("Amount:"), amountField,
+                new Label("Launch Date:"), launchDatePicker,
+                new Label("Return Date:"), returnDatePicker,
                 createMissionBtn,
                 deleteMissionBtn,
                 statusLabel,
@@ -68,6 +74,9 @@ public class AdminPanel {
 
     private void setupForm() {
         travelDaysField.setPromptText("Enter travel days (e.g. 10)");
+        amountField.setPromptText("Enter amount (e.g. 5000)");
+        launchDatePicker.setPromptText("Select launch date");
+        returnDatePicker.setPromptText("Select return date");
     }
 
     private void setupMissionTable() {
@@ -99,7 +108,11 @@ public class AdminPanel {
         crewCol.setCellValueFactory(new PropertyValueFactory<>("crewName"));
         crewCol.setPrefWidth(120);
 
-        missionTable.getColumns().addAll(idCol, rocketCol, destCol, launchCol, daysCol, supCol, crewCol);
+        TableColumn<Mission, Double> amountCol = new TableColumn<>("Amount");
+        amountCol.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        amountCol.setPrefWidth(80);
+
+        missionTable.getColumns().addAll(idCol, rocketCol, destCol, launchCol, daysCol, supCol, crewCol, amountCol);
         missionTable.setPrefHeight(250);
     }
 
@@ -145,31 +158,40 @@ public class AdminPanel {
         Astronaut supervisor = supervisorBox.getSelectionModel().getSelectedItem();
         Astronaut crew = crewBox.getSelectionModel().getSelectedItem();
         String travelDaysStr = travelDaysField.getText();
+        String amountStr = amountField.getText();
+        java.time.LocalDate launchDate = launchDatePicker.getValue();
+        java.time.LocalDate returnDate = returnDatePicker.getValue();
 
-        if (rocket == null || dest == null || site == null || supervisor == null || crew == null || travelDaysStr.isEmpty()) {
+        if (rocket == null || dest == null || site == null || supervisor == null || crew == null || travelDaysStr.isEmpty() || amountStr.isEmpty() || launchDate == null || returnDate == null) {
             statusLabel.setText("Please fill all fields.");
             return;
         }
 
         int days;
+        double amount;
         try {
             days = Integer.parseInt(travelDaysStr);
             if (days <= 0) {
                 statusLabel.setText("Travel days must be positive.");
                 return;
             }
+            amount = Double.parseDouble(amountStr);
+            if (amount < 0) {
+                statusLabel.setText("Amount must be non-negative.");
+                return;
+            }
         } catch (NumberFormatException e) {
-            statusLabel.setText("Invalid travel days.");
+            statusLabel.setText("Invalid travel days or amount.");
             return;
         }
-
         // Mission oluştur
-        adminController.createMission(rocket, dest, site, supervisor, crew, days);
+        adminController.createMission(rocket, dest, site, supervisor, crew, days, amount, launchDate, returnDate);
         statusLabel.setText("Mission created successfully.");
-
         // Formu temizle
         travelDaysField.clear();
-
+        amountField.clear();
+        launchDatePicker.setValue(null);
+        returnDatePicker.setValue(null);
         // Listeyi yenile
         refreshMissionTable();
     }

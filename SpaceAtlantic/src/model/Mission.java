@@ -8,9 +8,12 @@ public class Mission {
     private int travelDays;
     private String supervisorName;
     private String crewName;
+    private java.time.LocalDate launchDate;
+    private java.time.LocalDate returnDate;
+    private double amount;
 
     public Mission(int id, String rocketName, String destinationName, String launchSiteName, int travelDays,
-                   String supervisorName, String crewName) {
+                   String supervisorName, String crewName, double amount, java.time.LocalDate launchDate, java.time.LocalDate returnDate) {
         this.id = id;
         this.rocketName = rocketName;
         this.destinationName = destinationName;
@@ -18,6 +21,9 @@ public class Mission {
         this.travelDays = travelDays;
         this.supervisorName = supervisorName;
         this.crewName = crewName;
+        this.amount = amount;
+        this.launchDate = launchDate;
+        this.returnDate = returnDate;
     }
 
     // Getters
@@ -28,6 +34,9 @@ public class Mission {
     public int getTravelDays() { return travelDays; }
     public String getSupervisorName() { return supervisorName; }
     public String getCrewName() { return crewName; }
+    public java.time.LocalDate getLaunchDate() { return launchDate; }
+    public java.time.LocalDate getReturnDate() { return returnDate; }
+    public double getAmount() { return amount; }
 
     public String getSummary() {
         return "Mission #" + id +
@@ -36,6 +45,9 @@ public class Mission {
                 ", Launch Site=" + launchSiteName +
                 ", Travel Days=" + travelDays +
                 ", Supervisor=" + supervisorName +
-                ", Crew=" + crewName;
+                ", Crew=" + crewName +
+                ", Amount=" + amount +
+                ", Launch Date=" + launchDate +
+                ", Return Date=" + returnDate;
     }
 }

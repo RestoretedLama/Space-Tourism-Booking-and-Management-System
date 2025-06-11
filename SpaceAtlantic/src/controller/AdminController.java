@@ -14,7 +14,8 @@ public class AdminController {
         List<Mission> list = new ArrayList<>();
         String query = """
             SELECT m.mission_id, r.name AS rocket_name, d.planet_name AS destination_name, ls.site_name AS launch_site_name,
-                   m.travel_time_days, sup.full_name AS supervisor_name, crew.full_name AS crew_name
+                   m.travel_time_days, sup.full_name AS supervisor_name, crew.full_name AS crew_name,
+                   m.amount, m.launch_date, m.return_date
             FROM Missions m
             JOIN Rockets r ON m.rocket_id = r.rocket_id
             JOIN Destinations d ON m.destination_id = d.destination_id
@@ -37,7 +38,10 @@ public class AdminController {
                         rs.getString("launch_site_name"),
                         rs.getInt("travel_time_days"),
                         rs.getString("supervisor_name"),
-                        rs.getString("crew_name")
+                        rs.getString("crew_name"),
+                        rs.getDouble("amount"),
+                        rs.getDate("launch_date").toLocalDate(),
+                        rs.getDate("return_date").toLocalDate()
                 );
                 list.add(mission);
             }
@@ -112,18 +116,22 @@ public class AdminController {
 
 
     public void createMission(Rocket rocket, Destination dest, LaunchSite site,
-                              Astronaut supervisor, Astronaut crew, int days) {
+                              Astronaut supervisor, Astronaut crew, int days,
+                              double amount, java.time.LocalDate launchDate, java.time.LocalDate returnDate) {
         try (Connection conn = DatabaseConnector.getConnection()) {
             conn.setAutoCommit(false);
 
             PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO Missions (rocket_id, destination_id, launch_site_id, travel_time_days, capacity) VALUES (?, ?, ?, ?, ?)",
+                    "INSERT INTO Missions (rocket_id, destination_id, launch_site_id, travel_time_days, capacity, amount, launch_date, return_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS);
             stmt.setInt(1, rocket.getId());
             stmt.setInt(2, dest.getId());
             stmt.setInt(3, site.getId());
             stmt.setInt(4, days);
             stmt.setInt(5, rocket.getCapacity());
+            stmt.setDouble(6, amount);
+            stmt.setDate(7, java.sql.Date.valueOf(launchDate));
+            stmt.setDate(8, java.sql.Date.valueOf(returnDate));
             stmt.executeUpdate();
 
             ResultSet rs = stmt.getGeneratedKeys();

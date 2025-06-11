@@ -1,7 +1,7 @@
 package controller;
 
-import database.DatabaseConnector;
 import model.*;
+import database.DatabaseConnector;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -61,19 +61,17 @@ public class CustomerController {
     // Belirli bir destinasyon için uygun misyonları getir
     public List<Mission> getAvailableMissionsForDestination(int destinationId) {
         List<Mission> missions = new ArrayList<>();
+        System.out.println("Querying missions for destination ID: " + destinationId);
+        
         String query = """
             SELECT m.mission_id, r.name AS rocket_name, d.planet_name AS destination_name, 
                    ls.site_name AS launch_site_name, m.travel_time_days, m.capacity,
-                   (m.capacity - COALESCE(booked_seats.count, 0)) AS available_seats,
-                   sup.full_name AS supervisor_name, crew.full_name AS crew_name
+                   m.amount, m.launch_date, m.return_date,
+                   (m.capacity - COALESCE(booked_seats.count, 0)) AS available_seats
             FROM Missions m
             JOIN Rockets r ON m.rocket_id = r.rocket_id
             JOIN Destinations d ON m.destination_id = d.destination_id
             JOIN Launch_Sites ls ON m.launch_site_id = ls.site_id
-            JOIN Mission_Astronauts sup_assoc ON m.mission_id = sup_assoc.mission_id AND sup_assoc.role = 'Supervisor'
-            JOIN Astronauts sup ON sup_assoc.astronaut_id = sup.astronaut_id
-            JOIN Mission_Astronauts crew_assoc ON m.mission_id = crew_assoc.mission_id AND crew_assoc.role = 'Crew'
-            JOIN Astronauts crew ON crew_assoc.astronaut_id = crew.astronaut_id
             LEFT JOIN (
                 SELECT mission_id, COUNT(*) as count 
                 FROM Bookings 
@@ -90,22 +88,59 @@ public class CustomerController {
             stmt.setInt(1, destinationId);
             ResultSet rs = stmt.executeQuery();
             
+            int count = 0;
             while (rs.next()) {
+                count++;
+                // Get supervisor and crew names separately
+                String supervisorName = getAstronautNameForMission(rs.getInt("mission_id"), "Supervisor");
+                String crewName = getAstronautNameForMission(rs.getInt("mission_id"), "Crew");
+                
                 Mission mission = new Mission(
                     rs.getInt("mission_id"),
                     rs.getString("rocket_name"),
                     rs.getString("destination_name"),
                     rs.getString("launch_site_name"),
                     rs.getInt("travel_time_days"),
-                    rs.getString("supervisor_name"),
-                    rs.getString("crew_name")
+                    supervisorName != null ? supervisorName : "Not Assigned",
+                    crewName != null ? crewName : "Not Assigned",
+                    rs.getDouble("amount"),
+                    rs.getDate("launch_date").toLocalDate(),
+                    rs.getDate("return_date").toLocalDate()
                 );
                 missions.add(mission);
+                System.out.println("Found mission: " + mission.getRocketName() + " to " + mission.getDestinationName());
+            }
+            System.out.println("Total missions found: " + count);
+        } catch (SQLException e) {
+            System.err.println("SQL Error in getAvailableMissionsForDestination: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return missions;
+    }
+    
+    // Helper method to get astronaut name for a specific mission and role
+    private String getAstronautNameForMission(int missionId, String role) {
+        String query = """
+            SELECT a.full_name
+            FROM Mission_Astronauts ma
+            JOIN Astronauts a ON ma.astronaut_id = a.astronaut_id
+            WHERE ma.mission_id = ? AND ma.role = ?
+            """;
+        
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setInt(1, missionId);
+            stmt.setString(2, role);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getString("full_name");
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return missions;
+        return null;
     }
     
     // Rezervasyon oluştur
@@ -244,5 +279,45 @@ public class CustomerController {
             e.printStackTrace();
         }
         return 0;
+    }
+    
+    // Test method to check if there are any missions
+    public boolean hasAnyMissions() {
+        String query = "SELECT COUNT(*) as count FROM Missions";
+        
+        try (Connection conn = DatabaseConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            
+            if (rs.next()) {
+                int count = rs.getInt("count");
+                System.out.println("Total missions in database: " + count);
+                return count > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking missions: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Test method to check if there are any destinations
+    public boolean hasAnyDestinations() {
+        String query = "SELECT COUNT(*) as count FROM Destinations";
+        
+        try (Connection conn = DatabaseConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            
+            if (rs.next()) {
+                int count = rs.getInt("count");
+                System.out.println("Total destinations in database: " + count);
+                return count > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking destinations: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
     }
 } 

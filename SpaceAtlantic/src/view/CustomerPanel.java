@@ -1,4 +1,4 @@
-﻿package view;
+package view;
 
 import controller.CustomerController;
 import javafx.collections.FXCollections;
@@ -48,8 +48,6 @@ public class CustomerPanel {
     private TextField contactField;
     private ComboBox<String> paymentMethodComboBox;
     private TextField amountField;
-    private DatePicker launchDatePicker;
-    private DatePicker returnDatePicker;
     
     // Display labels
     private Label ticketDetailsLabel;
@@ -180,15 +178,6 @@ public class CustomerPanel {
         form.add(new Label("Contact Info:"), 0, 4);
         form.add(contactField, 1, 4);
         
-        // Date pickers
-        launchDatePicker = new DatePicker();
-        returnDatePicker = new DatePicker();
-        
-        form.add(new Label("Launch Date:"), 0, 5);
-        form.add(launchDatePicker, 1, 5);
-        form.add(new Label("Return Date:"), 0, 6);
-        form.add(returnDatePicker, 1, 6);
-        
         guestStep.getChildren().addAll(title, form);
     }
     
@@ -201,13 +190,18 @@ public class CustomerPanel {
         title.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         
         paymentMethodComboBox = new ComboBox<>();
-        paymentMethodComboBox.setPromptText("Select payment method...");
-        
+        paymentMethodComboBox.setPrefWidth(300);
         amountField = new TextField();
-        amountField.setPromptText("Amount (USD)");
+        amountField.setEditable(false);
+        amountField.setDisable(true);
         
-        paymentStep.getChildren().addAll(title, new Label("Payment Method:"), paymentMethodComboBox, 
-                                       new Label("Amount:"), amountField);
+        VBox form = new VBox(10);
+        form.getChildren().addAll(
+            new Label("Payment Method:"), paymentMethodComboBox,
+            new Label("Amount:"), amountField
+        );
+        
+        paymentStep.getChildren().addAll(title, form);
     }
     
     private void initializeTicketStep() {
@@ -261,8 +255,21 @@ public class CustomerPanel {
     }
     
     private void loadInitialData() {
+        // Test database content first
+        System.out.println("=== Testing Database Content ===");
+        boolean hasDestinations = controller.hasAnyDestinations();
+        boolean hasMissions = controller.hasAnyMissions();
+        
+        if (!hasDestinations) {
+            System.err.println("WARNING: No destinations found in database!");
+        }
+        if (!hasMissions) {
+            System.err.println("WARNING: No missions found in database!");
+        }
+        
         // Load destinations
         List<Destination> destinations = controller.getAvailableDestinations();
+        System.out.println("Loaded " + destinations.size() + " destinations");
         destinationComboBox.getItems().addAll(destinations);
         
         // Load payment methods
@@ -274,21 +281,32 @@ public class CustomerPanel {
         if (currentStep == 0) {
             // Destination selected, load missions
             if (selectedDestination != null) {
+                System.out.println("Loading missions for destination: " + selectedDestination.getPlanet() + " (ID: " + selectedDestination.getId() + ")");
                 List<Mission> missions = controller.getAvailableMissionsForDestination(selectedDestination.getId());
+                System.out.println("Found " + missions.size() + " missions");
+                
                 missionComboBox.getItems().clear();
                 missionComboBox.getItems().addAll(missions);
+                
+                if (missions.isEmpty()) {
+                    showAlert("No available missions found for this destination!", Alert.AlertType.WARNING);
+                    return;
+                }
+                
                 currentStep = 1;
                 updateStepDisplay();
             }
         } else if (currentStep == 1) {
-            // Mission selected, validate guest info
-            if (validateGuestInfo()) {
+            // Mission selected, show guest info form
+            if (selectedMission != null) {
                 currentStep = 2;
                 updateStepDisplay();
+            } else {
+                showAlert("Please select a mission!", Alert.AlertType.WARNING);
             }
         } else if (currentStep == 2) {
             // Guest info validated, process booking
-            if (processBooking()) {
+            if (validateGuestInfo()) {
                 currentStep = 3;
                 updateStepDisplay();
             }
@@ -358,12 +376,10 @@ public class CustomerPanel {
     private boolean validateGuestInfo() {
         if (nameField.getText().isEmpty() || ageField.getText().isEmpty() || 
             nationalityComboBox.getValue() == null || genderComboBox.getValue() == null ||
-            contactField.getText().isEmpty() || launchDatePicker.getValue() == null ||
-            returnDatePicker.getValue() == null) {
+            contactField.getText().isEmpty()) {
             showAlert("Please fill all fields!", Alert.AlertType.WARNING);
             return false;
         }
-        
         try {
             int age = Integer.parseInt(ageField.getText());
             if (age < 18 || age > 80) {
@@ -374,17 +390,6 @@ public class CustomerPanel {
             showAlert("Please enter a valid age!", Alert.AlertType.WARNING);
             return false;
         }
-        
-        if (launchDatePicker.getValue().isBefore(LocalDate.now())) {
-            showAlert("Launch date cannot be in the past!", Alert.AlertType.WARNING);
-            return false;
-        }
-        
-        if (returnDatePicker.getValue().isBefore(launchDatePicker.getValue())) {
-            showAlert("Return date must be after launch date!", Alert.AlertType.WARNING);
-            return false;
-        }
-        
         return true;
     }
     
@@ -398,32 +403,27 @@ public class CustomerPanel {
                 genderComboBox.getValue(),
                 contactField.getText()
             );
-            
             if (guestId == -1) {
                 showAlert("Failed to register guest!", Alert.AlertType.ERROR);
                 return false;
             }
-            
             // Create booking
             int availableSeats = controller.getAvailableSeatsForMission(selectedMission.getId());
             if (availableSeats <= 0) {
                 showAlert("No available seats for this mission!", Alert.AlertType.ERROR);
                 return false;
             }
-            
             bookingId = controller.createBooking(
                 guestId,
                 selectedMission.getId(),
                 1, // seat number
-                launchDatePicker.getValue(),
-                returnDatePicker.getValue()
+                null, // launchDate kaldırıldı
+                null  // returnDate kaldırıldı
             );
-            
             if (bookingId == -1) {
                 showAlert("Failed to create booking!", Alert.AlertType.ERROR);
                 return false;
             }
-            
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -461,32 +461,38 @@ public class CustomerPanel {
     
     private void updateMissionDetails() {
         if (selectedMission != null) {
-            int availableSeats = controller.getAvailableSeatsForMission(selectedMission.getId());
-            missionDetailsLabel.setText(String.format(
-                "Rocket: %s\nDestination: %s\nLaunch Site: %s\nTravel Time: %d days\n" +
-                "Supervisor: %s\nCrew: %s\nAvailable Seats: %d",
-                selectedMission.getRocketName(),
-                selectedMission.getDestinationName(),
-                selectedMission.getLaunchSiteName(),
-                selectedMission.getTravelDays(),
-                selectedMission.getSupervisorName(),
-                selectedMission.getCrewName(),
-                availableSeats
-            ));
+            StringBuilder sb = new StringBuilder();
+            sb.append("Rocket: ").append(selectedMission.getRocketName()).append("\n");
+            sb.append("Destination: ").append(selectedMission.getDestinationName()).append("\n");
+            sb.append("Launch Site: ").append(selectedMission.getLaunchSiteName()).append("\n");
+            sb.append("Travel Time: ").append(selectedMission.getTravelDays()).append(" days\n");
+            sb.append("Supervisor: ").append(selectedMission.getSupervisorName()).append("\n");
+            sb.append("Crew: ").append(selectedMission.getCrewName()).append("\n");
+            sb.append("Available Seats: ").append(controller.getAvailableSeatsForMission(selectedMission.getId())).append("\n");
+            sb.append("Amount: ").append(selectedMission.getAmount()).append("\n");
+            sb.append("Launch Date: ").append(selectedMission.getLaunchDate()).append("\n");
+            sb.append("Return Date: ").append(selectedMission.getReturnDate()).append("\n");
+            missionDetailsLabel.setText(sb.toString());
+            // Set payment field
+            if (amountField != null) amountField.setText(String.valueOf(selectedMission.getAmount()));
+        } else {
+            missionDetailsLabel.setText("");
+            if (amountField != null) amountField.clear();
         }
     }
     
     private void updateTicketDisplay(Booking booking) {
         ticketDetailsLabel.setText(String.format(
             "Booking ID: %d\nSeat Number: %s\nLaunch Date: %s\nReturn Date: %s\n" +
-            "Status: %s\nDestination: %s\nRocket: %s",
+            "Status: %s\nDestination: %s\nRocket: %s\nAmount: %s",
             booking.getBookingId(),
             booking.getSeatNumber(),
             booking.getLaunchDate(),
             booking.getReturnDate(),
             booking.getStatus(),
             selectedMission.getDestinationName(),
-            selectedMission.getRocketName()
+            selectedMission.getRocketName(),
+            selectedMission.getAmount()
         ));
     }
     

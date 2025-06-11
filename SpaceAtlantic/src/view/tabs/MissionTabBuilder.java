@@ -80,7 +80,10 @@ public class MissionTabBuilder {
                         selectedLaunchSite.getName(),
                         travelDays,
                         selectedSupervisor.getFullName(),
-                        selectedCrew.getFullName()
+                        selectedCrew.getFullName(),
+                        0.0, // amount dummy
+                        java.time.LocalDate.now(), // launchDate dummy
+                        java.time.LocalDate.now() // returnDate dummy
                 );
 
                 resultLabel.setText("Mission created: " + missionSummary(mission));
