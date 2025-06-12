@@ -307,8 +307,10 @@ public class CustomerPanel {
         } else if (currentStep == 2) {
             // Guest info validated, process booking
             if (validateGuestInfo()) {
-                currentStep = 3;
-                updateStepDisplay();
+                if (processBooking()) {
+                    currentStep = 3;
+                    updateStepDisplay();
+                }
             }
         } else if (currentStep == 3) {
             // Payment processed, show ticket
@@ -462,6 +464,7 @@ public class CustomerPanel {
     private void updateMissionDetails() {
         if (selectedMission != null) {
             StringBuilder sb = new StringBuilder();
+            sb.append("Mission Name: ").append(selectedMission.getName()).append("\n");
             sb.append("Rocket: ").append(selectedMission.getRocketName()).append("\n");
             sb.append("Destination: ").append(selectedMission.getDestinationName()).append("\n");
             sb.append("Launch Site: ").append(selectedMission.getLaunchSiteName()).append("\n");
@@ -483,9 +486,10 @@ public class CustomerPanel {
     
     private void updateTicketDisplay(Booking booking) {
         ticketDetailsLabel.setText(String.format(
-            "Booking ID: %d\nSeat Number: %s\nLaunch Date: %s\nReturn Date: %s\n" +
+            "Booking ID: %d\nMission Name: %s\nSeat Number: %s\nLaunch Date: %s\nReturn Date: %s\n" +
             "Status: %s\nDestination: %s\nRocket: %s\nAmount: %s",
             booking.getBookingId(),
+            selectedMission.getName(),
             booking.getSeatNumber(),
             booking.getLaunchDate(),
             booking.getReturnDate(),

@@ -22,6 +22,7 @@ public class AdminPanel {
     private ComboBox<LaunchSite> launchSiteBox = new ComboBox<>();
     private ComboBox<Astronaut> supervisorBox = new ComboBox<>();
     private ComboBox<Astronaut> crewBox = new ComboBox<>();
+    private TextField missionNameField = new TextField();
     private TextField travelDaysField = new TextField();
     private TextField amountField = new TextField();
     private DatePicker launchDatePicker = new DatePicker();
@@ -39,6 +40,9 @@ public class AdminPanel {
         root.setPadding(new Insets(20));
 
         adminController = new AdminController();
+        
+        // Automatically update database schema if needed
+        adminController.addMissingColumns();
 
         setupForm();
         setupMissionTable();
@@ -51,6 +55,7 @@ public class AdminPanel {
                 new Label("Launch Site:"), launchSiteBox,
                 new Label("Supervisor Astronaut:"), supervisorBox,
                 new Label("Crew Astronaut:"), crewBox,
+                new Label("Mission Name:"), missionNameField,
                 new Label("Travel Days:"), travelDaysField,
                 new Label("Amount:"), amountField,
                 new Label("Launch Date:"), launchDatePicker,
@@ -73,6 +78,7 @@ public class AdminPanel {
     }
 
     private void setupForm() {
+        missionNameField.setPromptText("Enter mission name (e.g. Apollo 11)");
         travelDaysField.setPromptText("Enter travel days (e.g. 10)");
         amountField.setPromptText("Enter amount (e.g. 5000)");
         launchDatePicker.setPromptText("Select launch date");
@@ -83,6 +89,10 @@ public class AdminPanel {
         TableColumn<Mission, Integer> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         idCol.setPrefWidth(40);
+
+        TableColumn<Mission, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameCol.setPrefWidth(150);
 
         TableColumn<Mission, String> rocketCol = new TableColumn<>("Rocket");
         rocketCol.setCellValueFactory(new PropertyValueFactory<>("rocketName"));
@@ -112,7 +122,7 @@ public class AdminPanel {
         amountCol.setCellValueFactory(new PropertyValueFactory<>("amount"));
         amountCol.setPrefWidth(80);
 
-        missionTable.getColumns().addAll(idCol, rocketCol, destCol, launchCol, daysCol, supCol, crewCol, amountCol);
+        missionTable.getColumns().addAll(idCol, nameCol, rocketCol, destCol, launchCol, daysCol, supCol, crewCol, amountCol);
         missionTable.setPrefHeight(250);
     }
 
@@ -157,13 +167,14 @@ public class AdminPanel {
         LaunchSite site = launchSiteBox.getSelectionModel().getSelectedItem();
         Astronaut supervisor = supervisorBox.getSelectionModel().getSelectedItem();
         Astronaut crew = crewBox.getSelectionModel().getSelectedItem();
+        String missionName = missionNameField.getText();
         String travelDaysStr = travelDaysField.getText();
         String amountStr = amountField.getText();
         java.time.LocalDate launchDate = launchDatePicker.getValue();
         java.time.LocalDate returnDate = returnDatePicker.getValue();
 
         if (rocket == null || dest == null || site == null || supervisor == null || crew == null || travelDaysStr.isEmpty() || amountStr.isEmpty() || launchDate == null || returnDate == null) {
-            statusLabel.setText("Please fill all fields.");
+            statusLabel.setText("Please fill all required fields.");
             return;
         }
 
@@ -185,9 +196,10 @@ public class AdminPanel {
             return;
         }
         // Mission oluştur
-        adminController.createMission(rocket, dest, site, supervisor, crew, days, amount, launchDate, returnDate);
+        adminController.createMission(rocket, dest, site, supervisor, crew, missionName, days, amount, launchDate, returnDate);
         statusLabel.setText("Mission created successfully.");
         // Formu temizle
+        missionNameField.clear();
         travelDaysField.clear();
         amountField.clear();
         launchDatePicker.setValue(null);

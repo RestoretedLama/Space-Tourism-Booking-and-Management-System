@@ -2,6 +2,7 @@ package model;
 
 public class Mission {
     private int id;
+    private String name;
     private String rocketName;
     private String destinationName;
     private String launchSiteName;
@@ -12,9 +13,10 @@ public class Mission {
     private java.time.LocalDate returnDate;
     private double amount;
 
-    public Mission(int id, String rocketName, String destinationName, String launchSiteName, int travelDays,
+    public Mission(int id, String name, String rocketName, String destinationName, String launchSiteName, int travelDays,
                    String supervisorName, String crewName, double amount, java.time.LocalDate launchDate, java.time.LocalDate returnDate) {
         this.id = id;
+        this.name = name;
         this.rocketName = rocketName;
         this.destinationName = destinationName;
         this.launchSiteName = launchSiteName;
@@ -28,6 +30,7 @@ public class Mission {
 
     // Getters
     public int getId() { return id; }
+    public String getName() { return name; }
     public String getRocketName() { return rocketName; }
     public String getDestinationName() { return destinationName; }
     public String getLaunchSiteName() { return launchSiteName; }
@@ -39,7 +42,7 @@ public class Mission {
     public double getAmount() { return amount; }
 
     public String getSummary() {
-        return "Mission #" + id +
+        return "Mission #" + id + " (" + name + ")" +
                 ": Rocket=" + rocketName +
                 ", Destination=" + destinationName +
                 ", Launch Site=" + launchSiteName +
@@ -49,5 +52,10 @@ public class Mission {
                 ", Amount=" + amount +
                 ", Launch Date=" + launchDate +
                 ", Return Date=" + returnDate;
+    }
+    
+    @Override
+    public String toString() {
+        return name + " - " + destinationName + " (" + travelDays + " days)";
     }
 }

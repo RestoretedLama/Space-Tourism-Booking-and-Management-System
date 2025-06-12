@@ -63,24 +63,48 @@ public class CustomerController {
         List<Mission> missions = new ArrayList<>();
         System.out.println("Querying missions for destination ID: " + destinationId);
         
-        String query = """
-            SELECT m.mission_id, r.name AS rocket_name, d.planet_name AS destination_name, 
-                   ls.site_name AS launch_site_name, m.travel_time_days, m.capacity,
-                   m.amount, m.launch_date, m.return_date,
-                   (m.capacity - COALESCE(booked_seats.count, 0)) AS available_seats
-            FROM Missions m
-            JOIN Rockets r ON m.rocket_id = r.rocket_id
-            JOIN Destinations d ON m.destination_id = d.destination_id
-            JOIN Launch_Sites ls ON m.launch_site_id = ls.site_id
-            LEFT JOIN (
-                SELECT mission_id, COUNT(*) as count 
-                FROM Bookings 
-                WHERE status = 'Confirmed' 
-                GROUP BY mission_id
-            ) booked_seats ON m.mission_id = booked_seats.mission_id
-            WHERE m.destination_id = ? AND (m.capacity - COALESCE(booked_seats.count, 0)) > 0
-            ORDER BY m.travel_time_days
-            """;
+        // First check if the new columns exist
+        boolean hasNewColumns = checkIfNewColumnsExist();
+        
+        String query;
+        if (hasNewColumns) {
+            query = """
+                SELECT m.mission_id, m.name, r.name AS rocket_name, d.planet_name AS destination_name, 
+                       ls.site_name AS launch_site_name, m.travel_time_days, m.capacity,
+                       m.amount, m.launch_date, m.return_date,
+                       (m.capacity - COALESCE(booked_seats.count, 0)) AS available_seats
+                FROM Missions m
+                JOIN Rockets r ON m.rocket_id = r.rocket_id
+                JOIN Destinations d ON m.destination_id = d.destination_id
+                JOIN Launch_Sites ls ON m.launch_site_id = ls.site_id
+                LEFT JOIN (
+                    SELECT mission_id, COUNT(*) as count 
+                    FROM Bookings 
+                    WHERE status = 'Confirmed' 
+                    GROUP BY mission_id
+                ) booked_seats ON m.mission_id = booked_seats.mission_id
+                WHERE m.destination_id = ? AND (m.capacity - COALESCE(booked_seats.count, 0)) > 0
+                ORDER BY m.travel_time_days
+                """;
+        } else {
+            query = """
+                SELECT m.mission_id, r.name AS rocket_name, d.planet_name AS destination_name, 
+                       ls.site_name AS launch_site_name, m.travel_time_days, m.capacity,
+                       (m.capacity - COALESCE(booked_seats.count, 0)) AS available_seats
+                FROM Missions m
+                JOIN Rockets r ON m.rocket_id = r.rocket_id
+                JOIN Destinations d ON m.destination_id = d.destination_id
+                JOIN Launch_Sites ls ON m.launch_site_id = ls.site_id
+                LEFT JOIN (
+                    SELECT mission_id, COUNT(*) as count 
+                    FROM Bookings 
+                    WHERE status = 'Confirmed' 
+                    GROUP BY mission_id
+                ) booked_seats ON m.mission_id = booked_seats.mission_id
+                WHERE m.destination_id = ? AND (m.capacity - COALESCE(booked_seats.count, 0)) > 0
+                ORDER BY m.travel_time_days
+                """;
+        }
         
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -95,18 +119,37 @@ public class CustomerController {
                 String supervisorName = getAstronautNameForMission(rs.getInt("mission_id"), "Supervisor");
                 String crewName = getAstronautNameForMission(rs.getInt("mission_id"), "Crew");
                 
-                Mission mission = new Mission(
-                    rs.getInt("mission_id"),
-                    rs.getString("rocket_name"),
-                    rs.getString("destination_name"),
-                    rs.getString("launch_site_name"),
-                    rs.getInt("travel_time_days"),
-                    supervisorName != null ? supervisorName : "Not Assigned",
-                    crewName != null ? crewName : "Not Assigned",
-                    rs.getDouble("amount"),
-                    rs.getDate("launch_date").toLocalDate(),
-                    rs.getDate("return_date").toLocalDate()
-                );
+                Mission mission;
+                if (hasNewColumns) {
+                    mission = new Mission(
+                        rs.getInt("mission_id"),
+                        rs.getString("name"),
+                        rs.getString("rocket_name"),
+                        rs.getString("destination_name"),
+                        rs.getString("launch_site_name"),
+                        rs.getInt("travel_time_days"),
+                        supervisorName != null ? supervisorName : "Not Assigned",
+                        crewName != null ? crewName : "Not Assigned",
+                        rs.getDouble("amount"),
+                        rs.getDate("launch_date").toLocalDate(),
+                        rs.getDate("return_date").toLocalDate()
+                    );
+                } else {
+                    // Use default values for missing columns
+                    mission = new Mission(
+                        rs.getInt("mission_id"),
+                        "Mission " + rs.getInt("mission_id"), // default name
+                        rs.getString("rocket_name"),
+                        rs.getString("destination_name"),
+                        rs.getString("launch_site_name"),
+                        rs.getInt("travel_time_days"),
+                        supervisorName != null ? supervisorName : "Not Assigned",
+                        crewName != null ? crewName : "Not Assigned",
+                        5000.0, // default amount
+                        java.time.LocalDate.now().plusDays(30), // default launch date
+                        java.time.LocalDate.now().plusDays(60)  // default return date
+                    );
+                }
                 missions.add(mission);
                 System.out.println("Found mission: " + mission.getRocketName() + " to " + mission.getDestinationName());
             }
@@ -116,6 +159,18 @@ public class CustomerController {
             e.printStackTrace();
         }
         return missions;
+    }
+    
+    // Check if the new columns exist in the Missions table
+    private boolean checkIfNewColumnsExist() {
+        try (Connection conn = DatabaseConnector.getConnection()) {
+            DatabaseMetaData metaData = conn.getMetaData();
+            ResultSet columns = metaData.getColumns(null, null, "Missions", "amount");
+            return columns.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
     
     // Helper method to get astronaut name for a specific mission and role

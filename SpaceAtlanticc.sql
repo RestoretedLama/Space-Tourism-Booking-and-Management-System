@@ -80,11 +80,15 @@ INSERT INTO Launch_Sites (site_name, location, country) VALUES
 -- 7
 CREATE TABLE Missions (
     mission_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(200),
     rocket_id INT,
     destination_id INT,
     launch_site_id INT,
     travel_time_days INT,
     capacity INT,
+    amount DECIMAL(10,2) DEFAULT 0.00,
+    launch_date DATE,
+    return_date DATE,
     FOREIGN KEY (rocket_id) REFERENCES Rockets(rocket_id),
     FOREIGN KEY (destination_id) REFERENCES Destinations(destination_id),
     FOREIGN KEY (launch_site_id) REFERENCES Launch_Sites(site_id)
