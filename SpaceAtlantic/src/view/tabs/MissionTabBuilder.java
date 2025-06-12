@@ -73,8 +73,10 @@ public class MissionTabBuilder {
 
                 // Burada Mission objesini oluştur, ya da DB'ye kaydet
                 // Örnek:
+                String missionName = "Mission " + selectedDestination.getPlanet() + " - " + selectedRocket.getName();
                 Mission mission = new Mission(
                         missionId,
+                        missionName,
                         selectedRocket.getName(),
                         selectedDestination.toString(),
                         selectedLaunchSite.getName(),
@@ -113,6 +115,7 @@ public class MissionTabBuilder {
 
     private static String missionSummary(Mission mission) {
         return "ID: " + mission.getId() +
+                ", Name: " + mission.getName() +
                 ", Rocket: " + mission.getRocketName() +
                 ", Destination: " + mission.getDestinationName() +
                 ", Launch Site: " + mission.getLaunchSiteName() +

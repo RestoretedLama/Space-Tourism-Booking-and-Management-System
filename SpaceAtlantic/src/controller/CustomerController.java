@@ -200,6 +200,29 @@ public class CustomerController {
     
     // Rezervasyon oluştur
     public int createBooking(int guestId, int missionId, int seatNumber, LocalDate launchDate, LocalDate returnDate) {
+        // If launchDate or returnDate is null, get them from the mission
+        if (launchDate == null || returnDate == null) {
+            String missionQuery = "SELECT launch_date, return_date FROM Missions WHERE mission_id = ?";
+            try (Connection conn = DatabaseConnector.getConnection();
+                 PreparedStatement missionStmt = conn.prepareStatement(missionQuery)) {
+                
+                missionStmt.setInt(1, missionId);
+                ResultSet rs = missionStmt.executeQuery();
+                
+                if (rs.next()) {
+                    if (launchDate == null) {
+                        launchDate = rs.getDate("launch_date").toLocalDate();
+                    }
+                    if (returnDate == null) {
+                        returnDate = rs.getDate("return_date").toLocalDate();
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return -1;
+            }
+        }
+        
         String query = "INSERT INTO Bookings (guest_id, mission_id, seat_number, launch_date, return_date, status) VALUES (?, ?, ?, ?, ?, 'Confirmed')";
         
         try (Connection conn = DatabaseConnector.getConnection();
