@@ -130,6 +130,10 @@ public class CustomerPanel {
         Label title = new Label("Select Available Mission");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         
+        // Add info label about available seats
+        Label seatInfoLabel = new Label("💺 Available seats will be shown when you select a mission");
+        seatInfoLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #666; -fx-font-style: italic;");
+        
         missionComboBox = new ComboBox<>();
         missionComboBox.setPromptText("Choose your mission...");
         missionComboBox.setPrefWidth(300);
@@ -143,10 +147,18 @@ public class CustomerPanel {
             if (selectedMission != null) {
                 updateMissionDetails();
                 nextButton.setDisable(false);
+                
+                // Update seat info label with current availability
+                int availableSeats = controller.getAvailableSeatsForMission(selectedMission.getId());
+                seatInfoLabel.setText("💺 Available Seats: " + availableSeats + " | 🚀 Mission: " + selectedMission.getName());
+                seatInfoLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #2E7D32; -fx-font-weight: bold;");
+            } else {
+                seatInfoLabel.setText("💺 Available seats will be shown when you select a mission");
+                seatInfoLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #666; -fx-font-style: italic;");
             }
         });
         
-        missionStep.getChildren().addAll(title, missionComboBox, missionDetailsLabel);
+        missionStep.getChildren().addAll(title, seatInfoLabel, missionComboBox, missionDetailsLabel);
     }
     
     private void initializeGuestStep() {
@@ -359,7 +371,10 @@ public class CustomerPanel {
         }
         
         if (currentStepContainer != null) {
-            root.getChildren().add(2, currentStepContainer);
+            // Check if the container is already in the root
+            if (!root.getChildren().contains(currentStepContainer)) {
+                root.getChildren().add(2, currentStepContainer);
+            }
         }
         
         // Update button states
@@ -368,11 +383,51 @@ public class CustomerPanel {
         
         if (currentStep == 5) {
             nextButton.setText("Finish");
-            nextButton.setOnAction(e -> showAlert("Thank you for using Space Tourism!", Alert.AlertType.INFORMATION));
+            nextButton.setOnAction(e -> finishBooking());
         } else {
             nextButton.setText("Next");
             nextButton.setOnAction(e -> nextStep());
         }
+    }
+    
+    private void finishBooking() {
+        // Show thank you message
+        showAlert("Thank you for using Space Tourism! Your booking has been completed successfully.", Alert.AlertType.INFORMATION);
+        
+        // Reset all fields and go back to step 0
+        resetPanel();
+    }
+    
+    private void resetPanel() {
+        // Reset current step
+        currentStep = 0;
+        
+        // Reset selected items
+        selectedDestination = null;
+        selectedMission = null;
+        guestId = -1;
+        bookingId = -1;
+        
+        // Clear all form fields
+        if (destinationComboBox != null) destinationComboBox.setValue(null);
+        if (missionComboBox != null) missionComboBox.setValue(null);
+        if (nameField != null) nameField.clear();
+        if (ageField != null) ageField.clear();
+        if (nationalityComboBox != null) nationalityComboBox.setValue(null);
+        if (genderComboBox != null) genderComboBox.setValue(null);
+        if (contactField != null) contactField.clear();
+        if (paymentMethodComboBox != null) paymentMethodComboBox.setValue(null);
+        if (amountField != null) amountField.clear();
+        
+        // Clear labels
+        if (missionDetailsLabel != null) missionDetailsLabel.setText("");
+        if (ticketDetailsLabel != null) ticketDetailsLabel.setText("");
+        
+        // Reload initial data
+        loadInitialData();
+        
+        // Update display to show step 0
+        updateStepDisplay();
     }
     
     private boolean validateGuestInfo() {
@@ -409,18 +464,21 @@ public class CustomerPanel {
                 showAlert("Failed to register guest!", Alert.AlertType.ERROR);
                 return false;
             }
-            // Create booking
-            int availableSeats = controller.getAvailableSeatsForMission(selectedMission.getId());
-            if (availableSeats <= 0) {
+            
+            // Get next available seat number
+            int seatNumber = controller.getNextAvailableSeatNumber(selectedMission.getId());
+            if (seatNumber == -1) {
                 showAlert("No available seats for this mission!", Alert.AlertType.ERROR);
                 return false;
             }
+            
+            // Create booking
             bookingId = controller.createBooking(
                 guestId,
                 selectedMission.getId(),
-                1, // seat number
-                null, // launchDate kaldırıldı
-                null  // returnDate kaldırıldı
+                seatNumber, // Use dynamic seat number
+                null, // launchDate
+                null  // returnDate
             );
             if (bookingId == -1) {
                 showAlert("Failed to create booking!", Alert.AlertType.ERROR);
@@ -463,23 +521,39 @@ public class CustomerPanel {
     
     private void updateMissionDetails() {
         if (selectedMission != null) {
+            int availableSeats = controller.getAvailableSeatsForMission(selectedMission.getId());
+            
             StringBuilder sb = new StringBuilder();
-            sb.append("Mission Name: ").append(selectedMission.getName()).append("\n");
-            sb.append("Rocket: ").append(selectedMission.getRocketName()).append("\n");
-            sb.append("Destination: ").append(selectedMission.getDestinationName()).append("\n");
-            sb.append("Launch Site: ").append(selectedMission.getLaunchSiteName()).append("\n");
-            sb.append("Travel Time: ").append(selectedMission.getTravelDays()).append(" days\n");
-            sb.append("Supervisor: ").append(selectedMission.getSupervisorName()).append("\n");
-            sb.append("Crew: ").append(selectedMission.getCrewName()).append("\n");
-            sb.append("Available Seats: ").append(controller.getAvailableSeatsForMission(selectedMission.getId())).append("\n");
-            sb.append("Amount: ").append(selectedMission.getAmount()).append("\n");
-            sb.append("Launch Date: ").append(selectedMission.getLaunchDate()).append("\n");
-            sb.append("Return Date: ").append(selectedMission.getReturnDate()).append("\n");
+            sb.append("🚀 MISSION DETAILS\n");
+            sb.append("═══════════════════════════════════════\n");
+            sb.append("📋 Mission Name: ").append(selectedMission.getName()).append("\n");
+            sb.append("🚀 Rocket: ").append(selectedMission.getRocketName()).append("\n");
+            sb.append("🌍 Destination: ").append(selectedMission.getDestinationName()).append("\n");
+            sb.append("📍 Launch Site: ").append(selectedMission.getLaunchSiteName()).append("\n");
+            sb.append("⏱️ Travel Time: ").append(selectedMission.getTravelDays()).append(" days\n");
+            sb.append("👨‍🚀 Supervisor: ").append(selectedMission.getSupervisorName()).append("\n");
+            sb.append("👥 Crew: ").append(selectedMission.getCrewName()).append("\n");
+            sb.append("📅 Launch Date: ").append(selectedMission.getLaunchDate()).append("\n");
+            sb.append("📅 Return Date: ").append(selectedMission.getReturnDate()).append("\n");
+            sb.append("═══════════════════════════════════════\n");
+            
+            // Highlight available seats with special formatting
+            if (availableSeats > 0) {
+                sb.append("💺 AVAILABLE SEATS: ").append(availableSeats).append(" ✅\n");
+            } else {
+                sb.append("💺 AVAILABLE SEATS: 0 ❌ (FULLY BOOKED)\n");
+            }
+            
+            sb.append("💰 Amount: $").append(String.format("%.2f", selectedMission.getAmount())).append("\n");
+            
             missionDetailsLabel.setText(sb.toString());
+            missionDetailsLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #333; -fx-font-family: 'Consolas', monospace; -fx-padding: 10px; -fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-radius: 5;");
+            
             // Set payment field
             if (amountField != null) amountField.setText(String.valueOf(selectedMission.getAmount()));
         } else {
             missionDetailsLabel.setText("");
+            missionDetailsLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #666;");
             if (amountField != null) amountField.clear();
         }
     }

@@ -359,6 +359,65 @@ public class CustomerController {
         return 0;
     }
     
+    // Misyon için boş koltuk numarasını bul
+    public int getNextAvailableSeatNumber(int missionId) {
+        String query = """
+            SELECT b.seat_number
+            FROM Bookings b
+            WHERE b.mission_id = ? AND b.status = 'Confirmed'
+            ORDER BY b.seat_number
+            """;
+        
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setInt(1, missionId);
+            ResultSet rs = stmt.executeQuery();
+            
+            // Misyonun kapasitesini al
+            int capacity = getMissionCapacity(missionId);
+            if (capacity == 0) return -1;
+            
+            // Dolu koltukları kontrol et
+            int seatNumber = 1;
+            while (rs.next()) {
+                int bookedSeat = rs.getInt("seat_number");
+                if (bookedSeat == seatNumber) {
+                    seatNumber++;
+                } else {
+                    break; // Boş koltuk bulundu
+                }
+            }
+            
+            // Kapasite kontrolü
+            if (seatNumber <= capacity) {
+                return seatNumber;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+    
+    // Misyon kapasitesini getir
+    private int getMissionCapacity(int missionId) {
+        String query = "SELECT capacity FROM Missions WHERE mission_id = ?";
+        
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setInt(1, missionId);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("capacity");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
     // Test method to check if there are any missions
     public boolean hasAnyMissions() {
         String query = "SELECT COUNT(*) as count FROM Missions";
