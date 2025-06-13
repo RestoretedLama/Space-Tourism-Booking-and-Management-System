@@ -16,6 +16,7 @@ import java.util.List;
 public class CustomerPanel {
 
     private VBox root;
+    private ScrollPane scrollPane;
     private CustomerController controller;
     
     // Step navigation
@@ -94,6 +95,16 @@ public class CustomerPanel {
         initializeReviewStep();
         
         root.getChildren().addAll(header, stepLabel, destinationStep, navigationBox);
+        
+        // Create ScrollPane and wrap the root content
+        scrollPane = new ScrollPane(root);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+        scrollPane.setPrefViewportHeight(600);
+        scrollPane.setPrefViewportWidth(800);
         
         // Button actions
         nextButton.setOnAction(e -> nextStep());
@@ -588,5 +599,9 @@ public class CustomerPanel {
     
     public VBox getContent() {
         return root;
+    }
+    
+    public ScrollPane getScrollPane() {
+        return scrollPane;
     }
 }

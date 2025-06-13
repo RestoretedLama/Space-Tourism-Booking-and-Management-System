@@ -38,6 +38,16 @@ public class RocketAndDestinationTabBuilder {
                 rocketBtn, rocketLabel
         );
 
+        // Create ScrollPane for rocket form
+        ScrollPane rocketScrollPane = new ScrollPane(rocketBox);
+        rocketScrollPane.setFitToWidth(true);
+        rocketScrollPane.setFitToHeight(true);
+        rocketScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        rocketScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        rocketScrollPane.setStyle("-fx-background-color: transparent;");
+        rocketScrollPane.setPrefViewportHeight(500);
+        rocketScrollPane.setPrefViewportWidth(600);
+
         // Destination Form
         VBox destBox = new VBox(10);
         destBox.setPadding(new Insets(20));
@@ -68,9 +78,19 @@ public class RocketAndDestinationTabBuilder {
                 destBtn, destLabel
         );
 
+        // Create ScrollPane for destination form
+        ScrollPane destScrollPane = new ScrollPane(destBox);
+        destScrollPane.setFitToWidth(true);
+        destScrollPane.setFitToHeight(true);
+        destScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        destScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        destScrollPane.setStyle("-fx-background-color: transparent;");
+        destScrollPane.setPrefViewportHeight(500);
+        destScrollPane.setPrefViewportWidth(600);
+
         tabPane.getTabs().addAll(
-                new Tab("Rocket", rocketBox),
-                new Tab("Destination", destBox)
+                new Tab("Rocket", rocketScrollPane),
+                new Tab("Destination", destScrollPane)
         );
         return tabPane;
     }

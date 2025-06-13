@@ -47,6 +47,26 @@ public class ReviewTabBuilder {
                 new Label("Date:"), datePicker,
                 submitButton, resultLabel
         );
-        return vbox;
+        
+        // Create ScrollPane and wrap the content
+        ScrollPane scrollPane = new ScrollPane(vbox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+        scrollPane.setPrefViewportHeight(500);
+        scrollPane.setPrefViewportWidth(600);
+
+        // Create a container VBox to hold the ScrollPane
+        VBox container = new VBox();
+        container.getChildren().add(scrollPane);
+        VBox.setVgrow(scrollPane, javafx.scene.layout.Priority.ALWAYS);
+        container.setPrefHeight(600);
+        container.setPrefWidth(800);
+        container.setMaxHeight(600);
+        container.setMaxWidth(800);
+
+        return container;
     }
 }

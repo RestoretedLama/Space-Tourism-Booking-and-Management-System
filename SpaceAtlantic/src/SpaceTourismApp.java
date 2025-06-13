@@ -16,7 +16,7 @@ public class SpaceTourismApp extends Application {
         CustomerPanel customerPanel = new CustomerPanel();
 
         Tab adminTab = new Tab("Admin Panel");
-        adminTab.setContent(adminPanel.getRoot());
+        adminTab.setContent(adminPanel.getScrollPane());
         adminTab.setClosable(false);
 
         Tab customerTab = new Tab("Customer Panel");

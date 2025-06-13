@@ -14,6 +14,7 @@ import java.util.List;
 public class AdminPanel {
 
     private VBox root;
+    private ScrollPane scrollPane;
     private AdminController adminController;
 
     // Form alanları
@@ -36,7 +37,7 @@ public class AdminPanel {
     private Label statusLabel = new Label();
 
     public AdminPanel() {
-        root = new VBox(15);
+        root = new VBox(20);
         root.setPadding(new Insets(20));
 
         adminController = new AdminController();
@@ -47,9 +48,16 @@ public class AdminPanel {
         setupForm();
         setupMissionTable();
 
-        root.getChildren().add(new Label("Admin Panel İçeriği Buraya Gelecek"));
-
-        root.getChildren().addAll(
+        // Create form section
+        VBox formSection = new VBox(10);
+        formSection.setPadding(new Insets(15));
+        formSection.setStyle("-fx-background-color: #f8f9fa; -fx-border-color: #dee2e6; -fx-border-radius: 5; -fx-background-radius: 5;");
+        
+        Label formTitle = new Label("Create New Mission");
+        formTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        
+        formSection.getChildren().addAll(
+                formTitle,
                 new Label("Rocket:"), rocketBox,
                 new Label("Destination:"), destinationBox,
                 new Label("Launch Site:"), launchSiteBox,
@@ -62,9 +70,30 @@ public class AdminPanel {
                 new Label("Return Date:"), returnDatePicker,
                 createMissionBtn,
                 deleteMissionBtn,
-                statusLabel,
-                new Label("All Missions:"), missionTable
+                statusLabel
         );
+
+        // Create table section
+        VBox tableSection = new VBox(10);
+        tableSection.setPadding(new Insets(15));
+        tableSection.setStyle("-fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-radius: 5; -fx-background-radius: 5;");
+        
+        Label tableTitle = new Label("All Missions");
+        tableTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        
+        tableSection.getChildren().addAll(tableTitle, missionTable);
+
+        root.getChildren().addAll(formSection, tableSection);
+
+        // Create ScrollPane and wrap the root content
+        scrollPane = new ScrollPane(root);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+        scrollPane.setPrefViewportHeight(700);
+        scrollPane.setPrefViewportWidth(1000);
 
         loadComboBoxes();
         refreshMissionTable();
@@ -75,6 +104,14 @@ public class AdminPanel {
 
     public VBox getRoot() {
         return root;
+    }
+
+    public ScrollPane getScrollPane() {
+        return scrollPane;
+    }
+
+    public ScrollPane getRootAsScrollPane() {
+        return scrollPane;
     }
 
     private void setupForm() {
@@ -88,42 +125,55 @@ public class AdminPanel {
     private void setupMissionTable() {
         TableColumn<Mission, Integer> idCol = new TableColumn<>("ID");
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
-        idCol.setPrefWidth(40);
+        idCol.setPrefWidth(50);
+        idCol.setMinWidth(50);
 
-        TableColumn<Mission, String> nameCol = new TableColumn<>("Name");
+        TableColumn<Mission, String> nameCol = new TableColumn<>("Mission Name");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
-        nameCol.setPrefWidth(150);
+        nameCol.setPrefWidth(180);
+        nameCol.setMinWidth(150);
 
         TableColumn<Mission, String> rocketCol = new TableColumn<>("Rocket");
         rocketCol.setCellValueFactory(new PropertyValueFactory<>("rocketName"));
-        rocketCol.setPrefWidth(120);
+        rocketCol.setPrefWidth(140);
+        rocketCol.setMinWidth(120);
 
         TableColumn<Mission, String> destCol = new TableColumn<>("Destination");
         destCol.setCellValueFactory(new PropertyValueFactory<>("destinationName"));
-        destCol.setPrefWidth(120);
+        destCol.setPrefWidth(140);
+        destCol.setMinWidth(120);
 
         TableColumn<Mission, String> launchCol = new TableColumn<>("Launch Site");
         launchCol.setCellValueFactory(new PropertyValueFactory<>("launchSiteName"));
-        launchCol.setPrefWidth(120);
+        launchCol.setPrefWidth(140);
+        launchCol.setMinWidth(120);
 
-        TableColumn<Mission, Integer> daysCol = new TableColumn<>("Travel Days");
+        TableColumn<Mission, Integer> daysCol = new TableColumn<>("Days");
         daysCol.setCellValueFactory(new PropertyValueFactory<>("travelDays"));
         daysCol.setPrefWidth(80);
+        daysCol.setMinWidth(60);
 
         TableColumn<Mission, String> supCol = new TableColumn<>("Supervisor");
         supCol.setCellValueFactory(new PropertyValueFactory<>("supervisorName"));
-        supCol.setPrefWidth(120);
+        supCol.setPrefWidth(140);
+        supCol.setMinWidth(120);
 
         TableColumn<Mission, String> crewCol = new TableColumn<>("Crew");
         crewCol.setCellValueFactory(new PropertyValueFactory<>("crewName"));
-        crewCol.setPrefWidth(120);
+        crewCol.setPrefWidth(140);
+        crewCol.setMinWidth(120);
 
-        TableColumn<Mission, Double> amountCol = new TableColumn<>("Amount");
+        TableColumn<Mission, Double> amountCol = new TableColumn<>("Amount ($)");
         amountCol.setCellValueFactory(new PropertyValueFactory<>("amount"));
-        amountCol.setPrefWidth(80);
+        amountCol.setPrefWidth(100);
+        amountCol.setMinWidth(80);
 
         missionTable.getColumns().addAll(idCol, nameCol, rocketCol, destCol, launchCol, daysCol, supCol, crewCol, amountCol);
-        missionTable.setPrefHeight(250);
+        missionTable.setPrefHeight(400);
+        missionTable.setMinHeight(300);
+        missionTable.setMaxHeight(500);
+        missionTable.setStyle("-fx-font-size: 12px;");
+        missionTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
     }
 
     private void loadComboBoxes() {
